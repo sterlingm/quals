@@ -1,21 +1,31 @@
 
-\documentclass[conference]{ieeeconf}
+\documentclass[10pt,conference]{ieeeconf}
 \begin{document}
 
 \author{Sterling McLeod}
-\title {Title}
+\title {Simultaneous Localization and Mapping (SLAM) Literature Survey}
 \date {Month Day, Year}
 
 \maketitle
 
 
-\section {Introduction}
-    This is my Introduction.
+\section {Problem Formulation}
+    Simultaneous Localization and Mapping (SLAM) is the problem of determining a robot's pose and a map of its surrounding environment, given a set of percepts and robot trajectory. Mathematically, a robot's pose and map at time $t$ can be expressed as:
+    
+    \begin{equation}
+    p(s^t,\theta | z^t, u^t, n^t)
+    \end{equation}
+    
+    where $s^t$ is the robot's pose, $\theta$ is the environment map, $z^t$ is the latest sensor reading, $u^t$ is the latest control action, and $n^t$ is the set of landmarks observed at the current time.
+    
+    Landmarks are features of an environment that the robot uses to build a map. Some SLAM approaches represent a map simply as a set of landmark positions relative to the robot's pose. Other approaches use landmarks to build an occupancy-grid.
+    
+    SLAM has several important assumptions. Firstly, landmarks are assumed to be static. There can exist dynamic objects in an environment, but the features used to build a map should remain unchanged.
 
-\section {Section 2}
-    This is my second section.
+\section {Kalman Filters}
+    
 
-\subsection {Subsection 1}
+\subsection {Particle Filters}
     This is my second section's first subsection.
 
 \section {Conclusion}
