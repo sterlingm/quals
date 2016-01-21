@@ -63,36 +63,35 @@
 	\end{equation}
     
     Where $m_{k,x}$ and $m_{k,y}$ correspond to the $x$,$y$ location of the $k$-th landmark. The dimensionality of $x$ is $2K+3$ to account for $K$ landmark positions and a 3D pose vector.
+            
+    % robot's pose "and map"? 
+    The Kalman filter approach repeats a loop of two procedures: a prediction step and an update step. In the \emph{Prediction} step, the state at the next time increment is estimated. Estimation functions are based on the physical model of the system. For robotics, this would be a set of motion functions that take in the latest robot pose and control input. Prediction will return the "best guess" of the future robot pose. However, prediction will increase uncertainty about our belief. This increase in uncertainty is countered by the \emph{Update} step. In the \emph{Update} step, the latest sensor information is observed and integrated with the latest prediction. This new information will decrease our uncertainty in our belief.
     
-     Kalman filters have three significant assumptions about the systems they model: linear motion model, linear perception model, and the initial uncertainty must be Gaussian.
+    % put simple figures for motion examples?
+    The vanilla Kalman filter is designed to be a linear estimator. Thus, it assumes that both the estimation and measurement functions are linear. In robotics, this would apply to the motion functions and the sensor observation models. In most robot models, this does not hold. In many mobile robot models, motion must be tangential to a robot's longitudinal axis. This is true even for holonomic mobile robots. Manipulator robot models are also governed by trigonometric functions. Therefore, the basic Kalman filter's assumption will not hold for the SLAM problem.
     
-    The first two assumptions create issues for the Kalman filter approach. Robot motion is normally dictated by nonlinear trigonometric functions. To account for a nonlinear motion model, the next state is predicted using a Taylor series expansion. This creates an \emph{extended Kalman filter}.
-        
     
-    \subsection{Extended Kalman Filter}
+	%%%%%%%%% Need to mention that the EKF functions are equal to the original KF functions %%%%%%%%%%%%%%
+    The \emph{Extended Kalman filter} (EKF) is used to address these issues. The EKF is the nonlinear version of the Kalman filter. It linearizes the estimation functions using a Taylor Series. This creates the following transition functions:
     
-    An \emph{Extended} Kalman filter is the nonlinear version of the Kalman filter.
+    \begin{equation}
+    p(s_{t+1}|u,s_t) = As_t+Bu+\epsilon_{control}
+    \label{nlm}
+    \end{equation}
     
-    There are two steps to a Kalman filter approach:
+    \begin{equation}
+    p(z|u,s_t) = Cs_t+\epsilon_{sensor}
+    \label{nls}
+    \end{equation}
     
-    \begin{itemize}
-    	\item \emph{Predict}
-    	In the prediction step, the state at the current time is predicted given the latest control input and sensor information. 
-    	
-		\begin{equation}
-		p(x_t | )= 1
-		\end{equation}		    	
-
-    	\item \emph{Update}
-    	
-    	In the update step, new sensor information is integrated with the latest prediction. 
-    	
-    	The most significant advantage of using the Kalman filter approach is that the technique is capable of estimating over the full posterior of maps online. With the full posterior, the most likely map will always be found. 
-    	
-    	
-    \end{itemize}
-    
+	$A$, $B$, and $C$ are matrices containing linear mappings from the previous states to the next states. The $\epsilon$ values are covariance matrices represent noise in the motion and perception.
 	
+	Another assumption that Kalman filters rely on is that the initial uncertainty in a belief is Gaussian. This is hard to assume in practice. 
+
+
+
+    	The most significant advantage of using the Kalman filter approach is that the technique is capable of estimating over the full posterior of maps online. With the full posterior, the most likely map will always be found. 
+
 
 
 \section {Particle Filters}
