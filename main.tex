@@ -86,11 +86,9 @@
     
 	$A$, $B$, and $C$ are matrices containing linear mappings from the previous states to the next states. The $\epsilon$ values are covariance matrices represent noise in the motion and perception.
 	
-	Another assumption that Kalman filters rely on is that the initial uncertainty in a belief is Gaussian. This is hard to assume in practice. 
+	Another assumption that Kalman filters rely on is that the initial uncertainty in a belief is Gaussian. This assumptions raises critical practical issue. When observing an environment, landmarks can look identical, such as pillars or doorways. In this sort of situation, the identical landmarks should have equal probability, i.e. a multimodal distribution with equal covariance. However, due to Kalman filters requiring a Gaussian distribution, which contradicts the evidence observed. Thus, in order to use Kalman filters in real-world applications, the landmarks must be sparse and/or easily distinguishable.  
 
-
-
-    	The most significant advantage of using the Kalman filter approach is that the technique is capable of estimating over the full posterior of maps online. With the full posterior, the most likely map will always be found. 
+    	The most significant advantage of using the Kalman filter approach is that the technique is capable of estimating over the full posterior of maps online. With the full posterior, the most likely map will always be found.
 
 
 
