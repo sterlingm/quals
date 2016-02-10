@@ -8,7 +8,7 @@
 \begin{document}
 
 \author{Sterling McLeod}
-\title {Simultaneous Localization and Mapping (SLAM) Literature Survey}
+\title {Real-time Robot Motion Planning: A Survey}
 \date {Month Day, Year}
 
 \maketitle
@@ -16,143 +16,23 @@
 
 \section {Problem Formulation}
 
-    Simultaneous Localization and Mapping (SLAM) is the problem of determining a robot's pose and a map of its surrounding environment, given a set of percepts and robot trajectory. This problem arises in almost every real-world robotics scenario. 
+	Robot Motion Planning 
     
-    The map is unknown to the robot beforehand. Mathematically, a robot's pose and map at time $t$ can be expressed as:
-    
-    \begin{equation}
-    p(x_t,\theta | z_t, u_t, n_t)
-    \end{equation}
-    
-    where $s_t$ is the robot's pose, $\theta$ is the environment map, $z_t$ is the latest sensor reading, $u_t$ is the latest control action, and $n_t$ is the set of landmarks observed at the current time.
-    
-    Landmarks are features of an environment that the robot uses to build a map. Some SLAM approaches represent a map simply as a set of landmark positions relative to the robot's pose. Other approaches use landmarks to build an occupancy-grid.
-    
-    SLAM has several important assumptions. Second, a discrete time model is assumed.
-\begin{itemize}
-	\item \emph{Static landmarks}
-	Firstly, landmarks are assumed to be static. There can exist dynamic objects in an environment, but the features used to build a map should remain unchanged. 
-
-	\item \emph{Discrete time model}
-	
-	\item \emph{Gaussian noise model}	
-
-		
-	
-\end{itemize}
-
 
 \section {Motivation}
 
-	Uncertainty plays a large role in robotics. The medium for any type of robotic perception is a sensor. Sensors inevitably contain noise and are imperfect. Probabilistic techniques are best to model a system prone to noise and inaccuracies.
-
-\section {Kalman Filters}
-    
-    A Kalman filter is a probabilistic estimation algorithm that uses Bayesian inference with Gaussian uncertainty models to estimate the state of a system. The state vector, denoted by $x$, consists of the robot's pose, $s$, and the map of a robot's environment, $m$:
-    
-    \begin{equation}
-    x_t = (s_t, m)^T
-    \end{equation}
-    
-    Mobile robots are normally modelled as a rigid body moving in a plane. Under that assumption, a mobile robot's pose is typically represented with three variables: $s_x$, $s_y$, and $s_\theta$, which correspond to its $x$, $y$ location in the plane and its heading, respectively. A common approach to representing maps with Kalman filters is by using a set of $x,y$ locations corresponding to $K$ \emph{landmarks} in an environment. Landmarks are groups features that correspond to a larger, distinct object.
-    
-    Thus, given a robot's pose, $p$, and a set of $K$ landmark locations, the full state vector is:
-    
-    \begin{equation}
-    	x_t = [p_x, p_y, p_\theta, m_{1,x}, m_{1,y}, m_{2,x}, m_{2,y}, ... , m_{K,x}, m_{K,y}]^T
-	\end{equation}
-    
-    Where $m_{k,x}$ and $m_{k,y}$ correspond to the $x$,$y$ location of the $k$-th landmark. The dimensionality of $x$ is $2K+3$ to account for $K$ landmark positions and a 3D pose vector.
-            
-    % robot's pose "and map"? 
-    The Kalman filter approach repeats a loop of two procedures: a prediction step and an update step. In the \emph{Prediction} step, the state at the next time increment is estimated. Estimation functions are based on the physical model of the system. For robotics, this would be a set of motion functions that take in the latest robot pose and control input. Prediction will return the "best guess" of the future robot pose. However, prediction will increase uncertainty about our belief. This increase in uncertainty is countered by the \emph{Update} step. In the \emph{Update} step, the latest sensor information is observed and integrated with the latest prediction. This new information will decrease our uncertainty in our belief.
-    
-    % put simple figures for motion examples?
-    The vanilla Kalman filter is designed to be a linear estimator. Thus, it assumes that both the estimation and measurement functions are linear. In robotics, this would apply to the motion functions and the sensor observation models. In most robot models, this does not hold. In many mobile robot models, motion must be tangential to a robot's longitudinal axis. This is true even for holonomic mobile robots. Manipulator robot models are also governed by trigonometric functions. Therefore, the basic Kalman filter's assumption will not hold for the SLAM problem.
-    
-    
-	%%%%%%%%% Need to mention that the EKF functions are equal to the original KF functions %%%%%%%%%%%%%%
-    The \emph{Extended Kalman filter} (EKF) is used to address these issues. The EKF is the nonlinear version of the Kalman filter. It linearizes the estimation functions using a Taylor Series. This creates the following transition functions:
-    
-    \begin{equation}
-    p(s_{t+1}|u,s_t) = As_t+Bu+\epsilon_{control}
-    \label{nlm}
-    \end{equation}
-    
-    \begin{equation}
-    p(z|u,s_t) = Cs_t+\epsilon_{sensor}
-    \label{nls}
-    \end{equation}
-    
-	$A$, $B$, and $C$ are matrices containing linear mappings from the previous states to the next states. The $\epsilon$ values are covariance matrices represent noise in the motion and perception.
 	
-	Another assumption that Kalman filters rely on is that the initial uncertainty in a belief is Gaussian. This assumptions raises critical practical issue. When observing an environment, landmarks can look identical, such as pillars or doorways. In this sort of situation, the identical landmarks should have equal probability, i.e. a multimodal distribution with equal covariance. However, this is impossible to represent using Kalman filters due to the Gaussian assumption. Thus, in order to use Kalman filters in real-world applications, the landmarks must be sparse and/or easily distinguishable.  
-
-    	The most significant advantage of using the Kalman filter approach is that the technique is capable of estimating over the full posterior of maps online. The only approaches known to do this are based on Kalman filters. Computational considerations are discussed in more detail in Section VII.
 
 
+	
 
-\section {Particle Filters}
-
-	The Particle filter is an alternative approach to solve the filtering problem. 
-
-	
-	\subsection{FastSLAM}
-	
-	
-	FastSLAM \cite{montemerlo2002fastslam} is an approach to SLAM that scales logarithmically with the number of landmarks. It combines both Kalman and Particle filters, while exploiting conditional independence amongst landmarks to reduce computational costs.
-	
-	The locations of the landmarks are conditionally independent of each other given the robot's pose. Obtaining the landmark locations can be done as K separate estimation problems after a robot's pose has been estimated. Thus, the SLAM problem is broken down to $K+1$ estimation problems. Mathematically, it is represented as:
-	
-	\begin{equation}
-	p(s^t, \theta | z^t, u^t, n^t) = p(s^t | z^t, u^t, n^t) \prod_k p(\theta_k | s^t, z^t, u^t, n^t)
-	\end{equation}
-	
-	The FastSLAM approach was 
-
-\section {Expectation Maximization}
-    This is my second section's first subsection.
-    
-    
-\section {Data Association}
-
-	Data association is the problem of determining whether or not sensory input belongs to a previously sensed feature of the environment or is a new feature. This problem assumes that the features are in different locations because a robot will be moving around.
-	It is a feature correspondence problem. 
-	Visual features, such as SIFT
-	
-\subsection {Loop Closure}
-
-	If it is decided that the latest sensory input corresponds to an older feature, then \emph{loop closure} has occurred. That means the robot has performed a cycle in it's environment. Loop closures are important because they can drastically reduce uncertainty about a hypothesis. However, data association brings significant computational costs. 
-	
-	In the most general form, data association checks allow for repetitions and spurious measurements (false correlations). In an environment with $n$ known features, each new sensor measurement could correspond to any of the $n$ features. A hypothesis must be maintained any combination of occurrences. With spurious measurements, the checks must also include noisy measurements as part of the hypotheses. With each new measurement, the number of hypotheses grows by $n+1$. Thus, the complexity of data association grows exponentially with the number of measurements $m$: $(n+1)^m$. This process can be structured as an interpretation tree as shown in Fig.~\ref{tree}.
-	
-	\begin{figure}
-	\caption{Interpretation tree}
-	\label{tree}
-	\end{figure}
-
-\section {Computational Considerations}
-
-	As shown in Section V, the computational costs of SLAM scale exponentially with the number of measurements. Since autonomous robots must perform SLAM at real-time, much work has been done to reduce these costs.
-	
-	
-	
-	
-	
-	
-	
-\section {Sensors}
-
-	\section {RGB-D Camera}
-	
-	\section {LIDAR}
 
 
 \section {Conclusion}
     This is my Conclusion.
 
 
-\bibliography{biblio}
+\bibliography{rtrmp_bib}
 \bibliographystyle{unsrt}
 
 \end{document}
