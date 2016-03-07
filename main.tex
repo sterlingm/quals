@@ -1,34 +1,76 @@
-
 \documentclass[10pt,conference]{ieeeconf}
-
-\usepackage{amsmath}
-
-
 
 \begin{document}
 
+
+\nocite{PRM}
+
+
 \author{Sterling McLeod}
 \title {Real-time Robot Motion Planning: A Survey}
-\date {Month Day, Year}
+\date {2016}
 
 \maketitle
 
 
-\section {Problem Formulation}
 
-	Robot Motion Planning 
+\section{Problem Formulation}
+
+	Robot Motion Planning is the problem of moving a robot from one position to another in the world. This problem is made difficult by several things: the kinematic structure of a robot, the complexity of its environment, how much information about the environment is known, the complexity of obstacles, and how much information about obstacles is known. 
+	
+	Real-time motion planning is the problem of performing motion planning on-line in order to react to a dynamic environment.
+	
+	Real-time motion planning involves several issues. 
+	
+	Most of the computational side
+
+	
+\section{Configuration Space}
+
+A robot's \emph{configuration} is a vector specifying the values for each degree of freedom of the robot's kinematic structure. 
+
+The \emph{Configuration Space} is an $n$ degree manifold mapping between a robot's transformations and Euclidean space. 
+
+
+
+
     
 
-\section {Motivation}
+\section{Artificial Potential Fields}
 
+In an artificial potential field approach, a robot is treated like a particle in a gradient field. The goal emits an attractive force that acts on the robot and the obstacles emit a repulsive force. The combination of forces results in a vector field. Figure~\ref{vector-field} illustrates an example.
+
+At each location, a robot's motion is dictated by the magnitude and direction of the vector at the location.
+
+\section{Cell Decomposition Methods}
 	
-
-
 	
+\section{Sampling Based Methods}
+
+A sampling based method was first proposed in 1996 \cite{PRM}. Sampling to build a probabilistic C-space was proposed due to the high complexity of building an exact C-space.
+
+The basic Probabilistic Roadmaps algorithm works in two phases: learning and querying. 
+
+The \emph{learning} phase builds a graph of configurations by sampling configurations.
+
+Narrow passages are a limitation for this approach. In Figure \ref{narrow}(a), the free space between the two obstacles could be considered a narrow passage. With uniform sampling, there is little chance to that a point in the passage will be found. This may cause the planner  
+
+The \emph{query} phase searches in the graph found during the learning phase to build a path from an initial configuration to a goal configuration. 
+
+The PRM planner is considered \emph{probabilistically} complete. In most cases, it will not explore every point in the C-space. Given enough time, it will explore all points in the C-space and be able to determine if a path does not exist. 
 
 
 
-\section {Conclusion}
+
+\section{Collision Detection}
+	
+	Collision detection is the problem of determining whether one or more objects in a virtual environment are in contact. 
+	
+	Collision detection is the most computationally expensive task in robot motion planning. Thus, it is an imperative 
+
+
+
+\section{Conclusion}
     This is my Conclusion.
 
 
