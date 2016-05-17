@@ -32,8 +32,6 @@ A robot's \emph{configuration} is a vector specifying the values for each degree
 The \emph{Configuration Space} is an $n$ degree manifold mapping between a robot's transformations and Euclidean space. 
 
 
-
-
     
 
 \section{Artificial Potential Fields}
@@ -59,14 +57,64 @@ The \emph{query} phase searches in the graph found during the learning phase to 
 
 The PRM planner is considered \emph{probabilistically} complete. In most cases, it will not explore every point in the C-space. Given enough time, it will explore all points in the C-space and be able to determine if a path does not exist. 
 
+\section{Elastic Roadmaps}
 
+\section{Real-time Adaptive Motion Planning (RAMP)}
+
+Real-time Adaptive Motion Planning (RAMP) \cite{RAMP} is a framework that utilizes evolutionary computation for real-time planning and execution in dynamic environments. 
+
+Evolutionary computation is a field designed to leverage sophisticated data structures with genetic algorithms to search through a state space \cite{michalewicz2013genetic}. They are particularly suited to approximate optimization problems. One of the key difficulties in robot motion planning is extremely large state spaces. Sampling-based methods are able to find a path in large state spaces, but they can be far from optimal and re-sampling is expensive for real-time planning. An evolutionary computation approach allows us to change our set of samples very quickly and incorporate optimization into our state spaces searches. Using evolutionary computation for path planning was first proposed in \cite{EPN_Adaptive} and has since been extended to the motion planning framework RAMP.
+
+
+\subsection{Modification}
+
+A population of trajectories is maintained throughout the entire run time. Each trajectory in the population is a chromosome. At each \emph{generation}, 1-2 randomly selected chromosomes are modified via genetic operators. The new chromosome(s) may replace other trajectories in the population. 
+
+The basic modification operators are described in \cite{EPN_Adaptive}. They are \emph{Insert}, \emph{Delete}, \emph{Swap}, \emph{Change}, and \emph{Crossover}. These modification operations are computationally inexpensive so it is possible to perform 100+ within a second. The operators can result in drastic changes to a path. This means that a new feasible path may be found in a very small amount of time, which facilitates real-time path planning that can react to changes in an environment. Modification operators can be added, removed, or replaced based on the application of the robot. For instance, a \emph{Stop} operator was introduced in \cite{RAMP} that stops the base of a mobile manipulator for a random amount of time. This operator promoted decoupling of the base and manipulator, which was desirable to exploit redundancy. 
+
+The framework interweaves three separate procedures called planning cycles, control cycles, and sensing cycles. At each planning cycle (or \emph{generation}), the population of trajectories is modified. In later implementations (***Cite my own paper, what if not published?***), motion error is incorporated into the population during a planning cycle. The planning cycles occur as frequently as possible. Control cycles are procedures that select a trajectory from the population that will be executed by the robot and update the starting motion state of each trajectory in the population. The frequency of control cycles is adaptive based on constraints needed to satisfy in order to switch trajectories. Sensing cycles are procedures that update information about the environment.
+
+\subsection{Evaluation}
+
+Evolutionary computation utilizes an evaluation function to select the best chromosome from a population. In the RAMP framework, this corresponds to evaluating the population to choose the trajectory for a robot to execute. In RAMP, feasible trajectories are evaluated differently than infeasible trajectories. A trajectory's feasibility is determined by collision with obstacles and if all constraints can be satisfied when switching to the trajectory.
+
+A feasible trajectory is evaluated by a weighted, normalized sum based on optimization criteria:
+
+\begin{equation}
+	Cost = \sum_{i=1}^{N} C_i\frac{V_i}{\alpha_i}
+\end{equation}
+
+where $C_i$ is a weight, $V_i$ is a value for an optimization criterion, and $\alpha_i$ is a normalization value. Common criteria are time costs, energy costs, orientation change, and manipulability costs.
+
+Infeasible trajectories are trajectories that are in collision or cannot be executed due to not satisfying constraints. Rather than optimization criteria, they are evaluated based on penalties. For a mobile robot system, the following would be an evaluation function for infeasible trajectories:
+
+\begin{equation}
+Cost = P_T + P_\theta
+\end{equation}
+\begin{equation}
+P_T = \frac{Q_T}{T_{coll}}
+\end{equation}
+\begin{equation}
+P_\theta = Q_\theta\frac{\Delta\theta}{M}
+\end{equation}
+
+where $Q_T$ and $Q_θ$ are large constant values, $T_{coll}$ is the time
+of the first collision in the trajectory, $\Delta\theta$ is the orientation change, and $M$ is a normalization term.
+
+The evaluation for infeasible trajectories should be designed to differentiate which infeasible trajectories are better than others. For instance, the term $P_T$ ensures that trajectories with collision much later in time will be evaluated as better than trajectories with collision occurring very soon.
+
+\subsection{Sensing}
+
+Sensing cycles update the latest environment changes for the evaluation function. For dynamic obstacles, simple trajectories are predicted to use for collision detection in CT-space. An obstacle trajectory is predicted by assuming the sensed velocity is constant. Therefore, the predicted trajectory will be either a straight-line or circular arc. These are used for collision detection when evaluating the population. The obstacles may not follow what RAMP predicts, but future changes will be captured in future sensing cycles. Since sensing cycles occur frequently, using simple trajectories is sufficient for navigation, as shown through various experiments.
+
+ 
 
 
 \section{Collision Detection}
 	
 	Collision detection is the problem of determining whether one or more objects in a virtual environment are in contact. 
 	
-	Collision detection is the most computationally expensive task in robot motion planning. Thus, it is an imperative 
+	Collision detection is the most computationally expensive task in robot motion planning. 
 
 
 
