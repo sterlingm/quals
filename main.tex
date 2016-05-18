@@ -1,4 +1,7 @@
 \documentclass[10pt,conference]{ieeeconf}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+
 
 \begin{document}
 
@@ -12,7 +15,7 @@
 
 \maketitle
 
-
+\renewcommand{\algorithmicforall}{\textbf{for each}}
 
 \section{Problem Formulation}
 
@@ -40,16 +43,53 @@ In an artificial potential field approach, a robot is treated like a particle in
 
 At each location, a robot's motion is dictated by the magnitude and direction of the vector at the location.
 
+\section{Elastic Roadmaps}
+
+
 \section{Cell Decomposition Methods}
 	
+	doubly exponential (Springer handbook pg127)
 	
 \section{Sampling Based Methods}
 
-A sampling based method was first proposed in 1996 \cite{PRM}. Sampling to build a probabilistic C-space was proposed due to the high complexity of building an exact C-space.
+Computing the exact configuration space in high dimensions becomes extremely expensive. This makes previous methods, such as potential fields and combinatorial roadmaps, inapplicable to motion planning problems of high dimensions, such as a 6-DOF manipulation problem. Sampling-based methods were introduced in order to handle motion planning problems with such high complexity. Sampling algorithms sacrifice completeness and optimality, but obtain higher performance results. 
 
-The basic Probabilistic Roadmaps algorithm works in two phases: learning and querying. 
+Sampling based methods do not access the C-space directly. An associated collision detection algorithm will test a the robot at a sampled configuration with obstacles in the environment. Based on the result of collision detection, the sampling algorithm knows if a sample is free or obstacle space. After sampling many points, the result is an approximation of the C-space, rather than a complete description. 
 
-The \emph{learning} phase builds a graph of configurations by sampling configurations.
+Sampling has become the method of choice for most modern robotics applications. A sampling based method was first proposed in 1996 \cite{PRM} that builds a graph representation of the C-space approximation and then uses graph-search techniques to find a final path. A tree-based approach was introduced shortly after that could take kinodynamic constraints into account \cite{RRT}. These two approaches have been extended and iterated upon many times and remain the top approaches in the field.
+
+\subsection{Probabilistic Roadmaps}
+
+The basic Probabilistic Roadmaps algorithm \cite{PRM} works in two phases: learning and querying. 
+
+\subsubsection{Learning Phase}
+
+The goal of the \emph{learning} phase is to build the C-space approximation. A basic version of the algorithm is summarized below.
+
+\begin{algorithm}
+\caption{PRM Learning Phase}
+\begin{algorithmic}
+\State $N: $ number of nodes to include in the roadmap
+\State $V \leftarrow \emptyset$ // Initialize set of vertices
+\State $E \leftarrow \emptyset$ // Initialize set of edges
+\State $i \leftarrow 0$
+\While{$i < N$}
+\State $q \leftarrow $ randomly sampled configuration
+\If{$q \in C_{free}$}
+	\State $V \leftarrow V \cup \{q\}$;
+	\State $V_c \leftarrow $ neighborhood set of $q$;
+	\ForAll{$v \in V_c$}
+		\If{$Can\_Connect(v, q)$}
+			\State $e \leftarrow $new edge($q,v$)
+			\State $E \leftarrow E \cup \{e\}$
+		\EndIf
+	\EndFor
+\EndIf
+\EndWhile
+\end{algorithmic}
+\end{algorithm}
+
+The goal is to build an undirected graph containing $N$ nodes. Potential nodes are randomly sampled and checked for collision. If collision exists, the sampled is thrown away and the algorithm samples again. 
 
 Narrow passages are a limitation for this approach. In Figure \ref{narrow}(a), the free space between the two obstacles could be considered a narrow passage. With uniform sampling, there is little chance to that a point in the passage will be found. This may cause the planner  
 
@@ -57,7 +97,9 @@ The \emph{query} phase searches in the graph found during the learning phase to 
 
 The PRM planner is considered \emph{probabilistically} complete. In most cases, it will not explore every point in the C-space. Given enough time, it will explore all points in the C-space and be able to determine if a path does not exist. 
 
-\section{Elastic Roadmaps}
+
+\subsection{Rapidly-Exploring Random Trees}
+
 
 \section{Real-time Adaptive Motion Planning (RAMP)}
 
