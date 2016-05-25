@@ -64,11 +64,11 @@ The basic Probabilistic Roadmaps algorithm \cite{PRM} works in two phases: learn
 
 \subsubsection{Learning Phase}
 
-The goal of the \emph{learning} phase is to build the C-space approximation. A basic version of the algorithm is summarized below.
+The goal of the \emph{learning} phase is to build the C-space approximation. An overview of the learning phase is summarized below.
 
 \begin{algorithm}
 \caption{PRM Learning Phase}
-\begin{algorithmic}
+\begin{algorithmic}[1]
 \State $N: $ number of nodes to include in the roadmap
 \State $V \leftarrow \emptyset$ // Initialize set of vertices
 \State $E \leftarrow \emptyset$ // Initialize set of edges
@@ -89,17 +89,74 @@ The goal of the \emph{learning} phase is to build the C-space approximation. A b
 \end{algorithmic}
 \end{algorithm}
 
-The goal is to build an undirected graph containing $N$ nodes. Potential nodes are randomly sampled and checked for collision. If collision exists, the sampled is thrown away and the algorithm samples again. 
+The goal is to build an undirected graph containing $N$ nodes. These nodes correspond the collision-free points in a robot's configuration space. When a point is sampled and determined to be collision-free, a neighborhood of points from the existing graph is found. For each of these neighborhood points, if a local planner can find a collision-free path from the sampled point to the neighborhood points, an edge is formed connecting the nodes.If a sampled node is found to be in collision, the node is thrown away and the algorithm samples again. 
 
-Narrow passages are a limitation for this approach. In Figure \ref{narrow}(a), the free space between the two obstacles could be considered a narrow passage. With uniform sampling, there is little chance to that a point in the passage will be found. This may cause the planner  
+A local planner is utilized in order to create edges within the graph. Designing a local planner can be difficult, however, because it still needs to plan in a high-dimensional space. Cheap and fast planners are possible since we do not need to consider a global objective. Even if fast local planners are not complete, they are desired over more powerful methods because they allow for more connections to be considered during the learning phase. They allow this because if a local planner is fast, then checking connections between many nodes is fast. Thus, the faster a local planner is, the more connections can be made in a small amount of time. It is desirable to sample as many nodes and make as many connections as possible since more nodes and connections will generally lead to a more accurate C-space approximation. For these reasons, local planners that connect nodes via straight lines are commonly used.
 
-The \emph{query} phase searches in the graph found during the learning phase to build a path from an initial configuration to a goal configuration. 
+Determining the neighborhood of a node is based on the value of a distance function between two nodes. The distance function is closely related to the choice of local planner because the distance should be proportional to the chance that the local planner can connect the two nodes with a collision-free path. For straight line local planners, the distance function can be the Euclidean distance between the nodes' positions in the robot's workspace. For more complicated local planners, however, more involved distance functions must be defined.  
+
+Narrow passages are a critical concern during the learning phase. A narrow passage is a region that is mostly enclosed by obstacles. These regions are of concern because it is difficult to sample inside of them and to find connections to nodes inside the regions. If a robot must pass through a narrow passage to reach its goal, then the learning phase may be prolonged to the point of being impractical. In Figure \ref{narrow}(a), the free space between the two obstacles could be considered a narrow passage. With uniform sampling, there is a small chance that a node in the passage will be found.  
+
+The PRM method tries to address narrow passages by performing an \emph{expansion} step after constructing the graph, in order to improve the graph's connectivity. To accomplish that, nodes that lie in narrow passages are selected and an attempt to find neighboring points in $C_f$ is made. 
+
+The difficulties in the expansion step is to identify which nodes lie in a narrow passage (those are the nodes that need expansion) and how to find neighboring points.
+
+To find potential expansion nodes, a heuristic needs to be defined that predicts the likelihood of some node $c$ being unconnected. In \cite{PRM}, the following was used:
+
+\begin{equation}
+r_f(c) = \frac{f(c)}{n(c)+1}
+\end{equation}
+
+where $n(c)$ is the number of times the planner tried to connect node $c$ and $f(c)$ is the number of successful connects made to $c$. This function is the \emph{failure ratio} of node $c$.  
+
+Random walks are a common method for actually expanding a node. A direction is chosen at random and the direction is followed until an obstacle is reached. An edge is then formed between node $c$ and a new node $n$ that is a node somewhere in between $c$ and the obstacle that was reached in the chosen direction. This process repeats by selecting new random directions for a pre-specified amount of time.
+
+\subsubsection{Query Phase}
+
+The \emph{query} phase searches the roadmap constructed during the learning phase to find a path from an initial configuration to a goal configuration. 
+
+The first step in this phase is to connect the starting configuration, $s$, and goal configuration, $g$, to the roadmap. The local planner used in the learning phase is used for this task. The procedure for connecting $s$ to the roadmap, $R$, begins by identifying the closest node on $R$ to $s$. The local planner attempts to form a path between $s$ and the closest node. If it cannot find a path, the planner uses the next-closest node on $R$ to connect to $s$. This process repeats until a connection is successful. Once $s$ has been connected, the goal configuration $g$ is connected in the same way. Once both $s$ and $g$ are connected to $R$, any graph-search algorithm will return a path from $s$ to $g$ in the robot's configuration space.
+
+\subsubsection{Further Discussion}
 
 The PRM planner is considered \emph{probabilistically} complete. In most cases, it will not explore every point in the C-space. Given enough time, it will explore all points in the C-space and be able to determine if a path does not exist. 
+
+Dynamic environments are difficult to address with the PRM approach. Constructing the roadmap can take significant computation time and is only useful for the state of the environment while constructing the roadmap. If any obstacles move, then the roadmap needs to be modified or completely remade based on the new state of the environment.
 
 
 \subsection{Rapidly-Exploring Random Trees}
 
+Rapidly-exploring Random Trees (RRT) is a popular sampling based approach to planning in high dimensional spaces \cite{RRT}. The key difference between RRT and PRM is that RRT uses a tree structure to approximate a robot's C-space, rather than the undirected graph structure used in PRM. This approach leads to several attractive features: it is suitable for handling non-holonomic and kinodynamic constraints, it requires few parameters, and is more apt to handle real-time planning in dynamic environments.
+
+The state space contains both the set of the configurations and the set of possible velocities.  A single state would represent the robot's velocity at a particular configuration. Other interpretations are viable, however. States in the obstacle space should follow the state space representation, e.g. velocity bounds, configurations, etc.
+
+A state transition function in the form $\dot{x} = f(x,u)$ must be defined to consider kinodynamic constraints. The inputs are a state, $x$, and an input, $u$, and the output is the derivative of the state over time. This function can be integrated in order to find the next state resulting from applying $u$ to $x$. This allows the algorithm to consider dynamics when building a path.
+
+Pseudocode for building an RRT can be seen below:
+
+\begin{algorithm}
+\caption{RRT Overview}
+\begin{algorithmic}[1]
+\Function {Construct RRT}{$x_{init}$, $x_{goal}$, $\Delta t$} 
+\State T.init($x_{init}$
+\While{$x_{goal} \notin T$}
+\State $x_{rand}$ = newly sampled state
+\State $x_{near}$ = nearest neighbor of $x_{rand}$
+\State $u$ = input needed to move from $x_{near}$ to $x_{rand}$
+\State $x_{new}$ = $\{x_{near}, u, \Delta t\}$
+\State $T.add\_vertex(x_{new})$
+\State $T.add\_edge(x_{near}, x_{new}, u)$
+\EndWhile
+\State Return $T$
+\EndFunction
+\end{algorithmic}
+\end{algorithm}
+
+At each iteration, a new state, $x_{rand}$, is randomly sampled. The parent of $x_{rand}$ will be the vertex on the tree that is nearest to the sample. The control input, $u$, is then selected to move from $x_{near}$ to $x_{rand}$ without moving into any regions occupied by obstacles in the state space. The new state, $x_{new}$ is formed from the nearest neighbor, the control input, and a small time increment. The new node is added as a vertex on the tree and the edge connecting $x_{near}$ to $x_{new}$ by applying $u$ is added to the tree as a new edge. This process repeats until the goal state has been added to the tree. Since every state has only one parent on the RRT, adding the goal state to the tree means that a path has been found. 
+
+The RRT approach has several nice properties. Similar to PRM, the RRT algorithm is probabilistically complete. The chance  of determining whether or not a path exists increases as times goes on. The expansion of states is biased towards unexplored areas because . As previously discussed, RRT is able to consider kinodynamic constraints. This is largely due to using a tree over an undirected graph. Since each state will have only one directed connection, it is easy to ensure that a robot's dynamic constraints will be satisfied as it move from state to state. The tree that is generated will always remain connected even in narrow passages. 
+
+One of the most appealing aspects of RRT is that it is bias towards unexplored areas of a space. This occurs because the selection of new states is based on the nearest neighbor calculation. 
 
 \section{Real-time Adaptive Motion Planning (RAMP)}
 
