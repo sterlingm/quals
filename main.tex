@@ -46,9 +46,52 @@ At each location, a robot's motion is dictated by the magnitude and direction of
 \section{Elastic Roadmaps}
 
 
-\section{Cell Decomposition Methods}
+\section{Combinatorial Methods}
 	
-	doubly exponential (Springer handbook pg127)
+	Combinatorial motion planning methods are complete planning algorithms that construct a roadmap in a known, continuous space in order to search through for path planning queries. These methods compute the exact configuration space for a robot and its environment in order to construct the roadmap. This class of algorithms works well for simple robotics problems, but does not scale up to many real-world applications seen today. 
+	
+\subsection{Roadmaps}
+	
+	Let $G$ be a graph structure of a topological space that maps to a robot's configuration space, $C_{free}$. The set $S$ is the points reachable in $C_{free}$ by $G$. In order for $G$ to be a roadmap, two conditions must be satisfied:
+	\begin{enumerate}
+	\item 
+	It is simple to compute a path from any initial node to any goal node in the space represented by $G$.
+	
+	\item
+	Given initial and goal configurations $q_I$ and $q_G$, respectively, in $C_{free}$, it is possible to connect corresponding nodes $s_1$ and $s_2$ in $S$. More formally, if there exists a path $\tau :[0,1] \rightarrow C_{free}$, such that $\tau (0)=q_I$ and $\tau (1)=q_G$, then there also exists a path $\tau'[0,1] \rightarrow S$, such that $\tau'(0)=s_1$ and $\tau'(1)=s_2$, where $s_1$ and $s_2$ are nodes on the roadmap.
+	\end{enumerate}
+	
+	An extremely important implication of the second condition is that solutions to path-planning queries are not missed due to the roadmap not capturing the connectivity of the configuration space. Essentially, the second condition ensures that algorithms searching on a roadmap can be complete. The first condition makes it always possible to connect an initial and goal configuration to a roadmap. This is essentially because the initial and goal nodes are not connected to the roadmap when it is constructed. They are only connected when beginning a query.
+	
+\subsection{Cell Decomposition}
+
+The goal of cell decomposition is to partition a topological space into cells that lie entirely in $C_{free}$. From such a partitioning, a roadmap can be constructed in order to reduce the path planning problem to a graph-search problem. There are several choices for decomposition. Some methods are best suited for polygonal spaces, some are better suited for higher-dimensions. However, all cell decompositions must satisfy three properties:
+
+\begin{enumerate}
+\item A path from any point in a cell to any point in a separate cell should lie in $C_{free}$.
+
+\item Adjacency information is easy to extract.
+
+\item Given any configuration $q$, calculating which cell $q$ lies in should be simple.
+\end{enumerate}
+
+The first condition is the most important. If it is known that the robot can move from one cell to another without encountering $C_{obs}$, then the problem is reduced to finding a path among a small number of cells, i.e. a graph-search problem. The second and third conditions are necessary to make the querying fast.
+
+\subsubsection{Vertical Cell Decomposition}
+
+Vertical Cell Decomposition is perhaps the most common method for cell decomposition in 2D. The method partitions the free C-space into triangles and trapezoids. These simple shapes represent the cells of $C_{free}$. 
+
+At each vertex in $C_{obs}$, vertical rays are extended above and below the vertex until another points in $C_{obs}$ is reached. These rays will define edges for the polygonal cells that partition $C_{free}$. Refer to Figure \ref{narrow} for a visual description of the method. One can see that the polygons creating $C_{obs}$ can be either convex or concave and that the cells in $C_{free}$ will be either triangular or trapezoidal. 
+
+Building a roadmap from the partitioning amounts to choosing sample points from each cell and connecting them to edges of the cell. More formally, a roadmap $G(V,E)$ is defined as follows: For every cell, $C_i$, define an interior point $q_i$. For each vertical edge in $C_i$, define a point $s_i$. Add the points $q_i$ and $s_i$ to $V$. Then, create an edge, $e_i$, between $q_i$ and the sample points on its cell's vertical edges. Add $e_i$ to $E$. The resulting graph is a roadmap that can be used for efficient path planning.
+
+The running time of this algorithm is $O(nlogn)$ when using the \emph{line-sweep} principle. This principle is the idea of a line sweeping across the space and noting where there are interesting points in the space. In this application, the line is a vertical one and the interesting points are the vertices of obstacles.
+
+
+To solve a path planning query, the initial and goal configurations, $q_I$ and $q_G$ respectively, need to be added to the roadmap. The third condition for cell decomposition listed in the previous section comes into play here. It should be simple to determine which cells $q_I$ and $q_G$ are in. Let $C_I$ and $C_G$ denote the cells that contain $q_I$ and $q_G$, respectively. Once $C_0$ and $C_G$ are identified, edges are found between the configurations and the corresponding cell's sample point. Thus, an edge is formed between $q_I$ and the sample point of $C_I$. Similarly, an edge is formed between $q_G$ and the sample point of $C_G$. Both edges are added to the roadmap $G(V,E)$. Graph search algorithms can be applied to the roadmap to find a path from $q_I$ and $q_G$ or find if a path does not exist.
+
+
+
 	
 \section{Sampling Based Methods}
 
@@ -154,9 +197,11 @@ Pseudocode for building an RRT can be seen below:
 
 At each iteration, a new state, $x_{rand}$, is randomly sampled. The parent of $x_{rand}$ will be the vertex on the tree that is nearest to the sample. The control input, $u$, is then selected to move from $x_{near}$ to $x_{rand}$ without moving into any regions occupied by obstacles in the state space. The new state, $x_{new}$ is formed from the nearest neighbor, the control input, and a small time increment. The new node is added as a vertex on the tree and the edge connecting $x_{near}$ to $x_{new}$ by applying $u$ is added to the tree as a new edge. This process repeats until the goal state has been added to the tree. Since every state has only one parent on the RRT, adding the goal state to the tree means that a path has been found. 
 
-The RRT approach has several nice properties. Similar to PRM, the RRT algorithm is probabilistically complete. The chance  of determining whether or not a path exists increases as times goes on. The expansion of states is biased towards unexplored areas because . As previously discussed, RRT is able to consider kinodynamic constraints. This is largely due to using a tree over an undirected graph. Since each state will have only one directed connection, it is easy to ensure that a robot's dynamic constraints will be satisfied as it move from state to state. The tree that is generated will always remain connected even in narrow passages. 
+The RRT approach has several nice properties. Similar to PRM, the RRT algorithm is probabilistically complete. The chance  of determining whether or not a path exists increases as times goes on. As previously discussed, RRT is able to consider kinodynamic constraints. This is largely due to using a tree over an undirected graph. Since each state will have only one directed connection, it is easy to ensure that a robot's dynamic constraints will be satisfied as it move from state to state. Another attractive property is that the tree will always remain connected, even in narrow passages. Graphs constructed with the PRM are not guaranteed to remain connected because the connections are based on a vertex's neighborhood. If there are no existing vertices nearby the new vertex, then the vertex will have no connections, but will still be added to the graph.
 
-One of the most appealing aspects of RRT is that it is bias towards unexplored areas of a space. This occurs because the selection of new states is based on the nearest neighbor calculation. 
+One of the most appealing aspects of RRT is that it is bias towards unexplored areas of a space. This occurs because the selection of new states is based on the nearest neighbor calculation.
+
+RRT has been applied to many constraint-based planning problems. In the figure below, several examples of RRTs are shown for different planning problems.
 
 \section{Real-time Adaptive Motion Planning (RAMP)}
 
