@@ -1,12 +1,23 @@
 \documentclass[10pt,conference]{ieeeconf}
 \usepackage{algorithm}
 \usepackage{algpseudocode}
+\usepackage{amssymb}
 
 
 \begin{document}
 
 
+% Artificial potential fields
+
+% Combinatorial methods
+
+% Sampling
 \nocite{PRM}
+\nocite{RRT}
+
+% RAMP
+\nocite{EPN_Adaptive}
+\nocite{RAMP}
 
 
 \author{Sterling McLeod}
@@ -77,18 +88,52 @@ The goal of cell decomposition is to partition a topological space into cells th
 
 The first condition is the most important. If it is known that the robot can move from one cell to another without encountering $C_{obs}$, then the problem is reduced to finding a path among a small number of cells, i.e. a graph-search problem. The second and third conditions are necessary to make the querying fast.
 
-\subsubsection{Vertical Cell Decomposition}
 
-Vertical Cell Decomposition is perhaps the most common method for cell decomposition in 2D. The method partitions the free C-space into triangles and trapezoids. These simple shapes represent the cells of $C_{free}$. 
+\subsubsection{Complexes}
+
+A \emph{complex} is defined as a collection of cells and their boundaries. The difference between the terms \emph{cell decomposition} and \emph{complex} is that complexes contain additional pieces of information about how cells fit together, whereas cell decompositions only contain the actual cells themselves. Cell decompositions are derived from complexes.
+
+The type of complex for a space will dictate the cell decomposition method that can be derived for the space. Two types of complexes are described below.
+
+A \emph{simplicial complex} satisfies the following conditions:
+
+\begin{enumerate}
+\item Any face of the complex is also in the complex.
+\item The intersection of any two simplexes in the complex is a common face of both simplexes
+\end{enumerate}
+
+Essentially, all of cells must be connected and share boundaries. Visually, this results in a set of cells that fit together nicely, as in Figure \ref{simplicial-complex}. 
+
+A \emph{singular complex} is a generalized version of simplicial complexes that can be defined on a manifold of $\mathbb{R}^n$. Singular complexes also satisfy two conditions:
+
+\begin{enumerate}
+\item For each dimension $k$, the set $S_k \subseteq X$ must be closed. 
+\item Each $k$-cell is an open set in the topological subspace $S_k$. Note that 0-cells are open in $S_0$, even though they are usually closed in $X$.
+\end{enumerate} 
+
+\subsubsection{Approaches}
+
+Vertical Cell Decomposition \cite{something} is perhaps the most common method for cell decomposition in 2D. The method partitions the free C-space into triangles and trapezoids. These simple shapes represent the cells of $C_{free}$. 
 
 At each vertex in $C_{obs}$, vertical rays are extended above and below the vertex until another points in $C_{obs}$ is reached. These rays will define edges for the polygonal cells that partition $C_{free}$. Refer to Figure \ref{narrow} for a visual description of the method. One can see that the polygons creating $C_{obs}$ can be either convex or concave and that the cells in $C_{free}$ will be either triangular or trapezoidal. 
 
 Building a roadmap from the partitioning amounts to choosing sample points from each cell and connecting them to edges of the cell. More formally, a roadmap $G(V,E)$ is defined as follows: For every cell, $C_i$, define an interior point $q_i$. For each vertical edge in $C_i$, define a point $s_i$. Add the points $q_i$ and $s_i$ to $V$. Then, create an edge, $e_i$, between $q_i$ and the sample points on its cell's vertical edges. Add $e_i$ to $E$. The resulting graph is a roadmap that can be used for efficient path planning.
 
-The running time of this algorithm is $O(nlogn)$ when using the \emph{line-sweep} principle. This principle is the idea of a line sweeping across the space and noting where there are interesting points in the space. In this application, the line is a vertical one and the interesting points are the vertices of obstacles.
+The running time of this algorithm is $O(nlogn)$ when using the \emph{line-sweep} principle. This principle is the idea of a line sweeping across the space and noting where there are interesting points in the space. In this application, the line is vertical and the interesting points are the vertices of obstacles.
+
+In Figure \ref{line-sweep}, the vertical lines show where the line would find interesting points and stop. An \emph{event} is each time the line finds an interesting point. Figure \ref{line-sweep-events} shows the status of the list of edges after each event.
+
+Triangulation \cite{something} is an alternative to vertical decomposition for polygonal spaces. The cells formed from triangulation will be, discernibly, triangles, whereas the cells formed from vertical decomposition are a mix of triangles and trapezoids. Refer to Figure \ref{triangulation} and note the difference between the partitioning and the partitioning in Figure \ref{line-sweep-events}. The running time of a naive approach to triangulation is $O(n^3)$. That is far too long, even for some 3D spaces. However, the running time can be reduced to $O(n^2logn)$ with radial sweeping \cite{something}.
+
+Cylindrical decomposition \cite{something} is similar to vertical decomposition in that it works by extending rays from all the obstacle vertices, but in the cylindrical method the rays do not stop until they reach the boundary of the C-space. This results in cells that alternate between regions of $C_{free}$ and $C_{obs}$. 
+
+\subsubsection{3D Vertical Decomposition}
 
 
-To solve a path planning query, the initial and goal configurations, $q_I$ and $q_G$ respectively, need to be added to the roadmap. The third condition for cell decomposition listed in the previous section comes into play here. It should be simple to determine which cells $q_I$ and $q_G$ are in. Let $C_I$ and $C_G$ denote the cells that contain $q_I$ and $q_G$, respectively. Once $C_0$ and $C_G$ are identified, edges are found between the configurations and the corresponding cell's sample point. Thus, an edge is formed between $q_I$ and the sample point of $C_I$. Similarly, an edge is formed between $q_G$ and the sample point of $C_G$. Both edges are added to the roadmap $G(V,E)$. Graph search algorithms can be applied to the roadmap to find a path from $q_I$ and $q_G$ or find if a path does not exist.
+
+\subsubsection{Querying}
+
+To solve a path planning query using the roadmap generated by a cell decomposition method, the initial and goal configurations, $q_I$ and $q_G$ respectively, need to be added to the roadmap. The third condition for cell decomposition listed in the previous section comes into play here. It should be simple to determine which cells $q_I$ and $q_G$ are in. Let $C_I$ and $C_G$ denote the cells that contain $q_I$ and $q_G$, respectively. Once $C_0$ and $C_G$ are identified, edges are found between the configurations and the corresponding cell's sample point. Thus, an edge is formed between $q_I$ and the sample point of $C_I$. Similarly, an edge is formed between $q_G$ and the sample point of $C_G$. Both edges are added to the roadmap $G(V,E)$. Graph search algorithms can be applied to the roadmap to find a path from $q_I$ and $q_G$ or find if a path does not exist.
 
 
 
