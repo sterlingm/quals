@@ -48,7 +48,19 @@ In order to move a robot's end-effector, actuators have to produce rotations or 
 % Insert 2-3 figures showing 2D configuration space
 In the 2D case, a robot's configuration space can be found by \emph{growing} the obstacles. In the case of a circle robot, all obstacles have each vertex extended to the size of the robot's circle. If the robot is a polygon, the growing process is slightly more complicated, but the result is the same - the obstacles grow larger and the robot is reduced to a point. This growing process was first proposed in \cite{lozano1979algorithm}. The growing process can be extended to 3 dimensions, but the time to compute the grown obstacles is significantly increased due to the increased number of vertices.
 
-For more complicated robot models, e.g. manipulators, computing the set of configurations is described in \cite{lozano1981automatic} and \cite{lozano1983spatial}. These works define the pick-and-place problem as two sub-problems: \emph{Findspace} and \emph{Findpath}.
+This process is defined more formally in \cite{lozano1981automatic} and \cite{lozano1983spatial}. Assume that a robot $A$ and obstacle $B$ are convex polygons with fixed orientation. Let $CO_A(B)$ denote the representation of $B$ in $A$'s configuration space. To construct $CO_A(B)$, \cite{lozano1981automatic} outlines a \emph{sliding} method. First, a contact between features (vertices or edges) of $A$ and $B$ must be found. If contact occurs with a vertex of $A$, then the contact vertex moves along the contact edge of $B$. When a new feature of $B$ is encountered, the roles in the sliding process switch. In this case, when the contact vertex of $A$ has slid across the contact edge of $B$, an edge of $A$ is then slid across the newly encountered vertex of $B$. This process repeats until all of $B$ has been covered by $A$. Refer to Figure \ref{sliding} for a visual understanding. The polygon formed by sliding is $CO_A(B)$. The upper bound on this algorithm is $O(|edges(A)| \times |edges(B)|)$. The method can be extended to polyhedra by considering faces as features to slide on.
+
+If $A$ and $B$ are polyhedra, then the convex hull and emph{Minkowski Sum} of the two sets of vertices can be used. The following equation is shown in \cite{lozano1981automatic}:
+
+\begin{equation}
+CO^{xyz}_A(B) = conv(A \oplus B)
+\end{equation}
+
+This computation has an upper bound of $O(n^2 logn)$ where $n=|vert(A)| + |vert(B)|$.
+
+The joint space of a manipulator is normally between 5-7 dimensions. Computing the exact representation of the C-space obstacles for such a robot is infeasible to compute. 
+
+Approximating these obstacles 
 
     
 

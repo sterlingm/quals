@@ -1,0 +1,17 @@
+Sampling-Based:
+Random networks in configurution space for just path planning,
+Ph.D. Dissertation, Tech. Rep. STAN-CS-95.1535, Dept. Computer
+Science, Stanford Univ., Stanford, CA, Jan. 1995
+
+
+Cell Decomposition:
+B. Chazelle. Approximation and decomposition of shapes. In J. T.
+Schwartz and C.-K. Yap, editors, Advances in Robotics 1: Algorithmic
+and Geometric Aspects of Robotics, pages 145{186. Lawrence Erlbaum
+Associates, Hillsdale, NJ, 1987
+- Cannot find the article - okay to just put citation?
+
+
+Configuration Space
+B.R. Donald. A search algorithm for motion planning with six degrees of freedom
+AI journal, 1987
