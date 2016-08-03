@@ -224,9 +224,11 @@ Dynamic environments are difficult to address with the PRM approach. Constructin
 
 Rapidly-exploring Random Trees (RRT) is a popular sampling based approach to planning in high dimensional spaces \cite{RRT}. The key difference between RRT and PRM is that RRT uses a tree structure to approximate a robot's C-space, rather than the undirected graph structure used in PRM. This approach leads to several attractive features: it is suitable for handling non-holonomic and kinodynamic constraints, it requires few parameters, and is more apt to handle real-time planning in dynamic environments.
 
-The state space contains both the set of the configurations and the set of possible velocities.  A single state would represent the robot's velocity at a particular configuration. Other interpretations are viable, however. States in the obstacle space should follow the state space representation, e.g. velocity bounds, configurations, etc.
+RRT was specifically designed for kinodynamic planning, i.e. it considers both configurations and differential constraints. For this reason, it is also referred to as a randomized kinodynamic planner \cite{lavalle2001randomized}.  
 
-A state transition function in the form $\dot{x} = f(x,u)$ must be defined to consider kinodynamic constraints. The inputs are a state, $x$, and an input, $u$, and the output is the derivative of the state over time. This function can be integrated in order to find the next state resulting from applying $u$ to $x$. This allows the algorithm to consider dynamics when building a path.
+The kinodynamic state space contains both the set of the configurations and the set of possible velocities. A single state would represent the robot's velocity at a particular configuration. Let $Q$ denote the configuration space of a rigid or articulated object in space. Each state $q \in Q$ represents a single configuration of the object. For kinodynamic planning, a state $x \in X$ would be defined as $x=(q,\dot{q})$ and $X$ is the set of all such states. Other types of spaces are viable, however. The state space could include higher-order derivatives or only the configuration $q$. If RRT is considering differential constraints, then the output will be a trajectory as opposed to only a geometric path.
+
+A state transition function in the form $\dot{x} = f(x,u)$ must be defined to consider kinodynamic constraints. The inputs are a state, $x$, and an input, $u$, and the output is the derivative of the state over time. This function can be integrated in order to find the next state resulting from applying $u$ to $x$. This allows the algorithm to consider dynamics constraints while planning. 
 
 Pseudocode for building an RRT can be seen below:
 
@@ -250,14 +252,16 @@ Pseudocode for building an RRT can be seen below:
 
 At each iteration, a new state, $x_{rand}$, is randomly sampled. The parent of $x_{rand}$ will be the vertex on the tree that is nearest to the sample. The control input, $u$, is then selected to move from $x_{near}$ to $x_{rand}$ without moving into any regions occupied by obstacles in the state space. The new state, $x_{new}$ is formed from the nearest neighbor, the control input, and a small time increment. The new node is added as a vertex on the tree and the edge connecting $x_{near}$ to $x_{new}$ by applying $u$ is added to the tree as a new edge. This process repeats until the goal state has been added to the tree. Since every state has only one parent on the RRT, adding the goal state to the tree means that a path has been found. 
 
-The RRT approach has several nice properties. Similar to PRM, the RRT algorithm is probabilistically complete. The chance  of determining whether or not a path exists increases as times goes on. As previously discussed, RRT is able to consider kinodynamic constraints. This is largely due to using a tree over an undirected graph. Since each state will have only one directed connection, it is easy to ensure that a robot's dynamic constraints will be satisfied as it move from state to state. Another attractive property is that the tree will always remain connected, even in narrow passages. Graphs constructed with the PRM are not guaranteed to remain connected because the connections are based on a vertex's neighborhood. If there are no existing vertices nearby the new vertex, then the vertex will have no connections, but will still be added to the graph.
+The RRT approach has several nice properties. Similar to PRM, the RRT algorithm is probabilistically complete. The chance of determining whether or not a path exists increases as times goes on. As previously discussed, RRT is able to consider kinodynamic constraints. This is largely due to using a tree over an undirected graph. Since each state will have only one directed connection, it is easy to ensure that a robot's dynamic constraints will be satisfied as it move from configuration to configuration. Another attractive property is that the tree will always remain connected, even in narrow passages. Graphs constructed with the PRM are not guaranteed to remain connected because the connections are based on a vertex's neighborhood. If there are no existing vertices nearby the new vertex, then the vertex will have no connections, but will still be added to the graph.
 
-One of the most appealing aspects of RRT is that it is bias towards unexplored areas of a space. This occurs because the selection of new states is based on the nearest neighbor calculation.
+One of the most appealing aspects of RRT is that it is bias towards unexplored areas of a space. This occurs because the selection of new states is based on the nearest neighbor calculation.*****
 
-RRT has been applied to many constraint-based planning problems. In the figure below, several examples of RRTs are shown for different planning problems.
+RRT has been applied to many constraint-based planning problems. In the figure below, several examples of RRTs are shown for different planning problems.*****
+
+Bi-directional searching was presented in \cite{rrt2000kuffer} to significantly increase the performance of RRT. Two trees are instantiated - one at the initial state $x_{init}$ and one at the goal state $x_{goal}$. When the trees connect, the query is complete. At each iteration of the algorithm, one of the trees, $T_0$, is extended by the usual set of procedures in RRT. Let $x_{new}$ be the newly added state to $T_0$. A new procedure, $Connect$, is called to attempt to add $x_{new}$ to the second tree, $T_1$. If this connection is unsucessful, then the trees are swapped so that $T_1$ can be extended.
 
 
-Bi-directional searching was presented in 
+
 
 \section{Real-time Adaptive Motion Planning (RAMP)}
 
