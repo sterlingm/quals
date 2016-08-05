@@ -219,6 +219,10 @@ The PRM planner is considered \emph{probabilistically} complete. In most cases, 
 
 Dynamic environments are difficult to address with the PRM approach. Constructing the roadmap can take significant computation time and is only useful for the state of the environment while constructing the roadmap. If any obstacles move, then the roadmap needs to be modified or completely remade based on the new state of the environment.
 
+Kinodynamic planning using PRM was proposed in \cite{hsu2002randomized}. The state space contains both configuration values and dynamic constraints.
+
+The steps of the algorithm are nearly identical to Algorithm 1. However, the randomly sampled points are control values
+
 
 \subsection{Rapidly-Exploring Random Trees}
 
@@ -259,6 +263,11 @@ One of the most appealing aspects of RRT is that it is bias towards unexplored a
 RRT has been applied to many constraint-based planning problems. In the figure below, several examples of RRTs are shown for different planning problems.*****
 
 Bi-directional searching was presented in \cite{rrt2000kuffer} to significantly increase the performance of RRT. Two trees are instantiated - one at the initial state $x_{init}$ and one at the goal state $x_{goal}$. When the trees connect, the query is complete. At each iteration of the algorithm, one of the trees, $T_0$, is extended by the usual set of procedures in RRT. Let $x_{new}$ be the newly added state to $T_0$. A new procedure, $Connect$, is called to attempt to add $x_{new}$ to the second tree, $T_1$. If this connection is unsucessful, then the trees are swapped so that $T_1$ can be extended.
+
+After its initial presentation, significant efforts were made to improve the performance of RRT for real robot execution \cite{bruce2002real} ****
+
+Extended RRT (ERRT) \cite{bruce2002real} was designed to use RRT on a real robot in a dynamic environment. To use RRT in a dynamic environment, an entirely new tree must be created each time the robot needs to change trajectories to adapt to its environment. Using the intuition that prior trees contain states that may lead to the goal, the authors used a waypoint cache to reduce the iterations needed to find the goal. A second addition from this work was an adaptive beta search, which adjusts the distance function to adaptively change the distance between nodes. Simulation experiments show that this approach can significantly reduce planning time when the queries become moderately complicated to solve. This work was also implemented onto the RoboCup F180 robot system, which was the first time RRT was shown to work on a real robot. This system read the positions of static dynamic obstacle through vision data at discrete time steps and used this information when executing the ERRT algorithm. The goal was to plan quickly enough to move around the obstacles as they executed their own independent motion. The authors found that the ERRT algorithm performed poorly when considering continuity in position in velocity. After reverting to planning with no kinematic constraints, ERRT was able to execute quickly enough for real-time motion, but contained noticeably sub-optimal motion. A post-processing step was employed that smoothed out the resulting path well enough for the robots to move at speeds up to 1.7m/s.
+
 
 
 
