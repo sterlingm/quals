@@ -162,7 +162,12 @@ The Artificial Potential Fields approach can react to changes in an environment 
 
 \section{Elastic Strips}
 
-Elastic Strips \cite{brock2002elastic} is an approach to real-time motion planning in unstructured dynamic environments. It aims at generating motion for robots with high degrees of freedom, such as humanoid robot models.
+Elastic Strips \cite{brock2002elastic} is an approach to real-time motion planning in unstructured dynamic environments. It aims at generating motion for robots with high degrees of freedom, such as humanoid robot models. It utilizes the operational space formulation \cite{khatib1987unified} that decomposes robot control into different behaviors in order to produce motion that allows a robot to avoid obstacles while also achieving a task. 
+
+An elastic strip is a volume formed by the union of a set of homotopic paths. These paths are slight modifications to a candidate path that satisfies global constraints of a robot's task, such as moving to a goal state. The volume is "elastic" because it can be slightly modified by modifying one of the homotopic paths while maintaining topological properties of the candidate path and local constraints such as obstacle avoidance. 
+
+
+
 
 	
 \section{Sampling Based Methods}
@@ -291,7 +296,7 @@ The steps of the algorithm are nearly identical to Algorithm 1. However, the ran
 
 
 \section{Real-time Adaptive Motion Planning (RAMP)}
-
+	
 Real-time Adaptive Motion Planning (RAMP) \cite{RAMP} is a framework that utilizes evolutionary computation for real-time planning and execution in dynamic environments. 
 
 Evolutionary computation is a field designed to leverage sophisticated data structures with genetic algorithms to search through a state space \cite{michalewicz2013genetic}. They are particularly suited to approximate optimization problems. One of the key difficulties in robot motion planning is extremely large state spaces. Sampling-based methods are able to find a path in large state spaces, but they can be far from optimal and re-sampling is expensive for real-time planning. An evolutionary computation approach allows us to change our set of samples very quickly and incorporate optimization into our state spaces searches. Using evolutionary computation for path planning was first proposed in \cite{EPN_Adaptive} and has since been extended to the motion planning framework RAMP.
