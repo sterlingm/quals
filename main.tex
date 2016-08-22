@@ -2,6 +2,7 @@
 \usepackage{algorithm}
 \usepackage{algpseudocode}
 \usepackage{amssymb}
+\usepackage{amsmath}
 
 
 \begin{document}
@@ -166,7 +167,33 @@ Elastic Strips \cite{brock2002elastic} is an approach to real-time motion planni
 
 An elastic strip is a volume formed by the union of a set of homotopic paths. These paths are slight modifications to a candidate path that satisfies global constraints of a robot's task, such as moving to a goal state. The volume is "elastic" because it can be slightly modified by modifying one of the homotopic paths while maintaining topological properties of the candidate path and local constraints such as obstacle avoidance. 
 
+\subsection{Obstacle Avoidance}
 
+The Elastic Strips framework employs local potential fields to modify trajectories in response to changes in the environment. 
+
+Let $P_c$ be the candidate path for a robot. To avoid obstacles, a new candidate path, $P_c'$, must be formed by modifying $P_c$ so that $P_c'$ lies within the elastic tunnel. A path is represented as a discrete set of configurations. To modify a path, two work space forces are created from two potential fields and applied to the path's configurations. The two forces are $V_{repulsive}$ and $V_{attractive}$. The repulsive force is based on the robot's proximity to obstacles. For a point $p$ on the robot, $V_{external}$ is defined as
+
+\[ \begin{cases} 
+      \frac{1}{2}k_r(d_0 - d(p))^2 & \text{if} d(p) < d_0 \\
+      0 & \text{otherwise}
+   \end{cases}
+\]
+
+where $d(p)$ is the distance between $p$ and the closet obstacle, $d_0$ is the region of influence around obstacles, and $k_r$ is a scalar. The resulting force from $V_{external}$ is
+
+\begin{equation}
+\textbf{F}^{ext}_p = -\nabla V_{external} = k_r(d_0-d(p))\frac{d}{||d||}
+\end{equation}
+
+where $d$ is the vector between $p$ and the closest point on an obstacle. This repulsive force, $\textbf{F}^{rep}_p$, will modify the existing configurations by pushing them away from obstacles. If the robot is not close to an obstacle, then the repulsive force has no effect.
+
+%\begin{equation}
+%V_{external}(p) = \left\{ \frac{1}{2}k_r(d_0 - d(p))^2 \text{if d(p) < d_0}
+%\end{equation}
+
+There are two scenarios that result in a failure to find a new path. One scenario is when a topological change occurs in the robot's configuration free space.
+
+The second scenario is when a structural local minimum occurs. The configuration free space around the candidate path has become so narrow that it cannot be modified enough to avoid an obstacle.
 
 
 	
