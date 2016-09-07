@@ -42,16 +42,37 @@
 	
 \section{Configuration Space}
 
-A robot's \emph{Configuration Space}, or C-space, is a manifold mapping the set of all transformation that can be applied to a robot to Euclidean space. The dimensionality of this space is determined by the number of degrees of freedom in a robotic system. A robot's \emph{configuration} is a vector specifying the values for each of a robot's degrees of freedom. A more intuitive way to think of C-space is as the set of all possible configurations that a robot can have. Each point in the C-space is a vector specifying a transformation of the robot.
+A robot's \emph{Configuration Space}, or C-space, is a manifold mapping the set of all transformations that can be applied to a robot to Euclidean space. The dimensionality of this space is determined by the number of degrees of freedom in a robotic system. A robot's \emph{configuration} is a vector specifying the values for each of a robot's degrees of freedom. A more intuitive way to think of C-space is as the set of all possible configurations that a robot can have. Each point in the C-space is a vector specifying a transformation of the robot.
 
 In order to move a robot's end-effector, actuators have to produce rotations or translation around the joints of a robot. This means that any motion of a robot is entirely controlled by the motion of its joints, or the change in configuration. Therefore, robot motion planning is concerned with how to move a robot from an initial configuration to a goal configuration.
-
-% Insert 2-3 figures showing 2D configuration space
-In the 2D case, a robot's configuration space can be found by \emph{growing} the obstacles. In the case of a circle robot, all obstacles have each vertex extended to the size of the robot's circle. If the robot is a polygon, the growing process is slightly more complicated, but the result is the same - the obstacles grow larger and the robot is reduced to a point. This growing process was first proposed in \cite{lozano1979algorithm}. The growing process can be extended to 3 dimensions, but the time to compute the grown obstacles is significantly increased due to the increased number of vertices.
-
-For more complicated robot models, e.g. manipulators, computing the set of configurations is described in \cite{lozano1981automatic} and \cite{lozano1983spatial}. These works define the pick-and-place problem as two sub-problems: \emph{Findspace} and \emph{Findpath}.
-
     
+    To define the C-space for a robot more formally, both the range and type of motion of the robot must be considered. If a robot is a rigid-body object translating in a plane, then its transformation can be expressed in terms of $x$ and $y$. This yields a manifold $M=\mathbb{R}^2$. If rotations can be applied to the robot, then another dimension must be added to the C-space manifold. Let $\theta=[0, 2\pi]$ be the range of rotation for the robot. The C-space manifold for a rigid body robot that can translate along $x$ and  $y$ and rotate $[0, 2\pi]$ in a plane becomes $M=\mathbb{R}^2 \times \mathbb{S}^1$.
+    
+    For rigid bodies moving in a 3D space, the C-space becomes more complicated. Generally, objects in a 3D space can translate in three dimensions and can rotate about three axes independently. This set of transformations is characterized by a position vector, $p$, and a rotation matrix, $R$, relative to a fixed frame. The resulting C-space will be six-dimensional: $C=\mathbb{R}^3 \times \mathbb{R}\mathbb{P}^3$. 
+    
+    Manipulators consist of multiple rigid bodies that can either translate or rotate independently of one another. When computing the C-space of articulated bodies, the C-spaces of \emph{each} body must be combined. If a manipulator is a chain of $n$ links connected by revolute joints and each joint can achieve full rotation $\theta_i=[0, 2\pi]$, then the C-space is defined as
+    
+    \begin{equation}
+    C = \mathbb{S}^1 \times \mathbb{S}^1 \times ... \times \mathbb{S}^1 = \mathbb{T}^n
+    \end{equation}
+   
+    Visually, this C-space is an $n$-dimensional torus. If a manipulator can translate in a 3D space, then an additional $\mathbb{R}^3$ must be considered: $C=\mathbb{R}^3 \times \mathbb{T}^n$. In the real world, however, it may not be possible to achieve a full rotation around each joint. If that is the case, then the topological space representing rotation in the C-space would be $\mathbb{R}^n$ instead of $\mathbb{T}^n$. 
+    
+    The C-space in a motion planning problem is separated into two subspaces, $C_{obs}$ and $C_{free}$. The subspace $C_{obs}$ represents the set of configurations containing obstacle regions and $C_{free} = C \backslash C_{obs}$. Let $A$ be a rigid body robot and $O$ be an obstacle region. Both $A$ and $O$ exist in a world space $W$. The C-space of $A$ is $C$ and a configuration $q \in C$ is defined as $q=(x, y, \theta)$. The obstacle region, $C_{obs}$, is defined as
+    
+    \begin{equation}
+    C_{obs} = \{q \in C | A(q) \cap O \neq \emptyset\}
+    \end{equation}
+
+In order to solve a motion planning problem, $C_{obs}$ must be computed or approximated. In the case of a rigid body robot translating in a plane that contains polygonal obstacles, $C_{obs}$ can be found by \emph{growing} the obstacles. For instance, if the robot is a circle robot, all obstacles have each vertex extended to the size of the robot's radius. There is a more systematic way to compute how the obstacles grow if the robot is a convex polygon. The Minkowski Sum is computed for the set of robot and obstacle vertices:
+
+\begin{equation}
+A \oplus B = \{(a,b) | a \in A, b \in B\}
+\end{equation}
+
+where $A$ is the set of robot vertices and $B$ is the set of obstacle vertices. The convex hull of $A \oplus B$ represents the final C-space obstacle region. To picture this algorithm visually, it is the result of sliding the robot along the obstacle's edges at the robot's reference vertex. For that reason, it is often referred to as the \emph{sliding algorithm}. This sliding process was first proposed in \cite{lozano1979algorithm}. The works \cite{lozano1981automatic} and \cite{lozano1983spatial} show how the sliding algorithm can be extended to 3 dimensions and manipulator models. The overall result is the same (obstacles are grown based on the robot size), however, the time to compute the grown obstacles is significantly increased because this algorithm has complexity $O(n+m)$ where $n$ is the number of robot edges and $m$ is the number of obstacle edges.
+
+Path-planning problems run searching algorithms in a robot's C-space. Since motion planning problems need to obtain a trajectory, searching is done in a robot's Configuration-Time Space (CT-space). A robot's CT-space only differs from its C-space by adding a dimension to represent time.
 
 \section{Combinatorial Methods}
 	
@@ -138,11 +159,11 @@ The crux of combinatorial methods is that the upper bound on the number of possi
 
 Consider the simpler problem of a robot moving in a directed acyclic grid with dimensions $m \times n$ and each edge is the same length. If the robot is at an inital location $(s_x, s_y)$ and the goal is given as $(g_x, g_y)$, then the total number of solutions is basic combinatorics:
 
-\begin{equation}
+\begin{equation}\label{eq:comb_complex}
 |P| = { |g_x-s_x|+|g_y-s_y| \choose |g_x-s_x| }
 \end{equation}
 
-Given (1), the total number of paths to move from one corner to the opposite corner can be computer as:
+Given (\ref{eq:comb_complex}), the total number of paths to move from one corner to the opposite corner can be computer as:
 
 \begin{equation}
 |P| = {m+n \choose m}
