@@ -29,18 +29,39 @@
 
 \renewcommand{\algorithmicforall}{\textbf{for each}}
 
-\section{Problem Formulation}
+\section{Introduction}
 
-	Robot Motion Planning is the problem of moving a robot from one position to another in the world. This problem is made difficult by several things: the kinematic structure of a robot, the complexity of its environment, how much information about the environment is known, the complexity of obstacles, and how much information about obstacles is known. 
+	Robot Motion Planning is the problem of moving a robot from one state to another in some environment. States can simply positions, or they can be high-dimensional configurations. They can also include dynamic information, such as a specific velocity or acceleration.	Motion planning is required in almost every robotics tasks that exists. Unfortunately, this problem is made difficult by several things: 
 	
-	Real-time motion planning is the problem of performing motion planning on-line in order to react to a dynamic environment.
+	\begin{itemize}
+	\item \emph{Kinematic structure of a robot}
+	
+	Most path-planning algorithms will work in a robot's Configuration Space (Section \ref{sec:C-space}). The number of dimensions in this space scales with the degrees of freedom in a robot's kinematic structure. Mobile bases will only have 2-3 dimensional C-spaces, but manipulators can have up to 7. Humanoid robots can have over 20. Finding a path in such high-dimensional spaces is extremely computationally expensive. 
+	
+	\item \emph{Complexity of an environment}
+	
+	Environment complexity is defined by the obstacles existing in it. If all obstacles are static, then the planning will not be too hard. If some or all of the obstacles are dynamic, then the planning is made much more complicated. Some planning algorithms build graphs that assume the obstacle are static. If the obstacles are dynamic, then the algorithms must rebuild a graph representing the state space. Rebuilding this space can be too computationally expensive to execute at real-time. 
+	
+	The dimensionality of an environment is also an important factor. Generally, mobile bases operate in a 2D environment. Manipulators and humanoids, however, operate in a 3D environment. The added dimension brings many more computational costs when performing collision detecton.
+	
+	\item \emph{Amount of obstacle information}
+	
+	The inherent complexity of dynamic obstacles can be diminished if a planner knows useful information about the obstacles. If we know exactly how an obstacle will move, then a planner can know where it will be in the future and plan accordingly. Partial information about obstacle movement would significantly reduce the planning problem complexity because it allows a system to make assumptions. For instance, in the domain of self-driving cars, an assumption can be made that the surrounding cars will only move forward. This means that a planner does not have to consider the case where an obstacle may move directly at the robot. Other domains, such as warehouse robots, cannot have this assumption applied. In order to have a general planner, one must assume as little as possible about obstacles. The algorithm must be developed to handle lots of various situations.
+	
+
+	
+	\end{itemize}
+	
+	
+	
+	Real-time motion planning is the problem of performing motion planning on-line in order to react to a dynamic environment. There are no 
 	
 	Real-time motion planning involves several issues. 
 	
 	Most of the computational side
 
 	
-\section{Configuration Space}
+\section{Configuration Space}\label{sec:C-space}
 
 A robot's \emph{Configuration Space}, or C-space, is a manifold mapping the set of all transformations that can be applied to a robot to Euclidean space. The dimensionality of this space is determined by the number of degrees of freedom in a robotic system. A robot's \emph{configuration} is a vector specifying the values for each of a robot's degrees of freedom. A more intuitive way to think of C-space is as the set of all possible configurations that a robot can have. Each point in the C-space is a vector specifying a transformation of the robot.
 
