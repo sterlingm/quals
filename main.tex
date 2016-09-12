@@ -31,7 +31,7 @@
 
 \section{Introduction}
 
-	Robot Motion Planning is the problem of moving a robot from one state to another in some environment. States can simply positions, or they can be high-dimensional configurations. They can also include dynamic information, such as a specific velocity or acceleration.	Motion planning is required in almost every robotics tasks that exists. Unfortunately, this problem is made difficult by several things: 
+	Robot Motion Planning is the problem of moving a robot from an initial state to a goal state in some environment. States can be positions, or they can be high-dimensional configurations. They can also include dynamic information, such as a specific velocity and/or acceleration.	Motion planning is required in almost every robotics tasks that exists. Unfortunately, this problem is made difficult by several things: 
 	
 	\begin{itemize}
 	\item \emph{Kinematic structure of a robot}
@@ -52,13 +52,9 @@
 	
 	\end{itemize}
 	
+	The path-planning work is normally carried out in a robot's Configuration Space (Section \ref{sec:C-space}) to simplify making connections from one state to another. 
 	
-	
-	Real-time motion planning is the problem of performing motion planning on-line in order to react to a dynamic environment. There are no 
-	
-	Real-time motion planning involves several issues. 
-	
-	Most of the computational side
+	The earliest works revolve around complete planners operating on a roadmap of the robot's environment. However, building such a roadmap in a 3D environment is extremely computationally expensive. Methods that 
 
 	
 \section{Configuration Space}\label{sec:C-space}
@@ -94,6 +90,17 @@ A \oplus B = \{(a,b) | a \in A, b \in B\}
 where $A$ is the set of robot vertices and $B$ is the set of obstacle vertices. The convex hull of $A \oplus B$ represents the final C-space obstacle region. To picture this algorithm visually, it is the result of sliding the robot along the obstacle's edges at the robot's reference vertex. For that reason, it is often referred to as the \emph{sliding algorithm}. This sliding process was first proposed in \cite{lozano1979algorithm}. The works \cite{lozano1981automatic} and \cite{lozano1983spatial} show how the sliding algorithm can be extended to 3 dimensions and manipulator models. The overall result is the same (obstacles are grown based on the robot size), however, the time to compute the grown obstacles is significantly increased because this algorithm has complexity $O(n+m)$ where $n$ is the number of robot edges and $m$ is the number of obstacle edges.
 
 Path-planning problems run searching algorithms in a robot's C-space. Since motion planning problems need to obtain a trajectory, searching is done in a robot's Configuration-Time Space (CT-space). A robot's CT-space only differs from its C-space by adding a dimension to represent time.
+
+
+\section{Problem Formulation}
+
+
+Suppose a robot $A$ is a rigid-body moving in some world space $W$. Let $Q$ be the Configuration-Time Space of $A$ as defined in the above section. Let $Q_{obs}$ be the obstacle region in $Q$. The free region is defined as $Q_{free} = Q \backslash Q_{obs}$.
+
+Given an initial state $q_I \in Q_{free}$ and a goal state $q_G \in Q_{free}$, a \emph{complete} algorithm will find a path $\rho[0:1]->Q_{free}$, such that $\rho[0]=q_I$ and $\rho[1]=q_G$.
+
+
+Once $\rho$ has been found, each state is treated as a knot point on a trajectory $T$ and intermediate points along $T$ are interpolated to form a full trajectory.
 
 \section{Combinatorial Methods}
 	
