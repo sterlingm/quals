@@ -372,10 +372,18 @@ Extended RRT (ERRT) \cite{bruce2002real} was designed to use RRT on a real robot
 
 \section{ Kinodynamic Motion Planning }
 
+Kinodynamic Planning is an extension of the general motion planning problem that integrates the kinematic and dynamic constraints into the final solution. Prior to the this field, robot motion was separated into two problems: path-planning and trajectory-following. The approaches described so far in this paper have fit into this decoupled model (the sampling-based approaches can be extended to kinodynamic planning).
+
+The problem was first proposed in \cite{donald1993kinodynamic}, where an approximate solution was presented. This work focused on a graph-search approach on the phase space of a robot's C-space. 
+
+
+
+
+
 
 Kinodynamic planning using PRM was proposed in \cite{hsu2002randomized}. The state space contains both configuration values and dynamic constraints.
 
-The steps of the algorithm are nearly identical to Algorithm 1. However, the randomly sampled points are control values
+The steps of the algorithm are nearly identical to Algorithm 1. However, the randomly sampled points are control values, rather than configurations.
 
 
 \section{Real-time Adaptive Motion Planning (RAMP)}
