@@ -1,0 +1,16 @@
+
+
+\section{ Kinodynamic Motion Planning } \label{sec:kino}
+
+Kinodynamic Planning is an approach to robot motion planning that integrates the kinematic and dynamic constraints of a robot into the planning aspect of the solution. In other words, it solves both path-planning and trajectory-following simultaneously. Prior motion planning approaches required these two problems to be done separately. Path-planning would be performed without considering a robot's dynamic constraints, and then a trajectory-following algorithm would interpolate points to move the robot along the path. The tuple describing a general motion planning problem from Section \ref{sec:probform} will contain two new values: $v_{max}$ and $a_{max}$, the maximum velocity and maximum acceleration, respectively, of the robot.
+
+
+The problem was first proposed in \cite{donald1993kinodynamic}, where an approximate solution was presented based on graph-search. The state space for this approach, denoted as $TC$, is the phase space of a robot's C-space. A point in this space represents both the robot's position and velocity, e.g. $S=(s, \dot{s})$. The state space is transformed into a directed graph where the vertices are discretized values from $TC$ and the edges represent trajectory segments.
+
+The trajectory segments are formed from $(a, \tau)$-\emph{bangs}. Given a maximum acceleration, $a$, let the set of constant acceleration values be denoted as $A$. A timestep $\tau$ can be chosen such that the velocity bound $v_{max}$ is an integer multiple of $a\tau$. A $(a, \tau)$-\emph{bang} is the result of applying an acceleration value from $A$ for duration $\tau$.
+
+
+
+Kinodynamic planning using PRM was proposed in \cite{hsu2002randomized}. The state space contains both configuration values and dynamic constraints.
+
+The steps of the algorithm are nearly identical to Algorithm 1. However, the randomly sampled points are control values, rather than configurations.
