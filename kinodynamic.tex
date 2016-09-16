@@ -14,3 +14,9 @@ The trajectory segments are formed from $(a, \tau)$-\emph{bangs}. Given a maximu
 Kinodynamic planning using PRM was proposed in \cite{hsu2002randomized}. The state space contains both configuration values and dynamic constraints.
 
 The steps of the algorithm are nearly identical to Algorithm 1. However, the randomly sampled points are control values, rather than configurations.
+
+
+
+An RRT approach was proposed in \cite{lavalle2001randomized}. RRT lends itself to kinodynamic planning very well because part of forming the connections in an RRT is based on the control needed to move from node to node. The main difference is to change the state space from the robot's C-space to the phase-space of the C-space so that each state is a (\emph{position}, \emph{velocity}) pair.
+
+A bidirectional search method can also be applied to this work as in \cite{kuffner2000rrt}.
