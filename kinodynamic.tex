@@ -5,9 +5,69 @@
 Kinodynamic Planning is an approach to robot motion planning that integrates the kinematic and dynamic constraints of a robot into the planning aspect of the solution. In other words, it solves both path-planning and trajectory-following simultaneously. Prior motion planning approaches required these two problems to be done separately. Path-planning would be performed without considering a robot's dynamic constraints, and then a trajectory-following algorithm would interpolate points to move the robot along the path. The tuple describing a general motion planning problem from Section \ref{sec:probform} will contain two new values: $v_{max}$ and $a_{max}$, the maximum velocity and maximum acceleration, respectively, of the robot.
 
 
+Since the goal of planning is usually to find an optimal solution (or the most-optimal available solution), it is possible that a kinodynamic planner may lead to an unsafe trajectory based on the robot's dynamic constraints. Therefore, a safety margin can be used to ensure that a solution maintains a certain distance from obstacles. A safety margin, $\delta$, is defined based on a robot's dynamic constraints. A $\delta_v$-\emph{safe kinodynamic solution} will move a robot from a starting state (position and velocity) to a goal state while avoiding obstacles by a safety margin $\delta_v$. Mathematically, the effect of the safety margin is the following:
+
+\begin{equation}
+\delta_v(c_0, c_1)(\dot{p}(t)) = c_0 + c_1||\dot{p}(t)||
+\end{equation}
+
+where $c_0$ and $c_1$ are positive scalar values.
+
+An additional parameter to this problem is $l$, the side length of a cube that bounds all free condigurations. The complete tuple for a kinodynamic planning problem is $(A, W, Q, O, q_S, q_G, l, a_{max}, v_{max})$. The complete tuple for a $\delta_v$-\emph{safe kinodynamic planning} problem is $(A, W, Q, O, q_S, q_G, l, a_{max}, v_{max}, c_0, c_1)$. The values $a_{max}, v_{max}, l, c_0,$ and $c_1$ are \emph{kinodynamic bounds}.
+
+
 The problem was first proposed in \cite{donald1993kinodynamic}, where an approximate solution was presented based on graph-search. The state space for this approach, denoted as $TC$, is the phase space of a robot's C-space. A point in this space represents both the robot's position and velocity, e.g. $S=(s, \dot{s})$. The state space is transformed into a directed graph where the vertices are discretized values from $TC$ and the edges represent trajectory segments.
 
-The trajectory segments are formed from $(a, \tau)$-\emph{bangs}. Given a maximum acceleration, $a$, let the set of constant acceleration values be denoted as $A$. A timestep $\tau$ can be chosen such that the velocity bound $v_{max}$ is an integer multiple of $a\tau$. A $(a, \tau)$-\emph{bang} is the result of applying an acceleration value from $A$ for duration $\tau$.
+The trajectory segments are formed from $(a, \tau)$-\emph{bangs}. Given a maximum acceleration, $a$, let the set of constant acceleration values $[-a,a]$ be denoted as $A$. A timestep $\tau$ can be chosen such that the velocity bound $v_{max}$ is an integer multiple of $a\tau$. A $(a, \tau)$-\emph{bang} is the result of applying an acceleration value from $A$ for duration $\tau$. 
+
+The timestep $\tau$ is based on a function of $a_{max}$, $v_{max}$, an approximation parameter $\epsilon$, and scalar values $c_0$ and $c_1$. The scalar values define a safety margin and the approximation parameter defines a bound for closeness to the desired start and goal states. The chosen timestep is the largest value satisfying the following condition:
+
+\begin{equation}
+\tau \leq \frac{\epsilon}{13} min\left( \sqrt{ \frac{2c_0\epsilon}{a(c_1+1)}}, \frac{c_0\epsilon}{a(c_1+1)}\right)
+\end{equation}
+
+Given $\tau$, the initial state $S^*=(s, \dot{s})$ is chosen such that $s^* = s$ and $\dot{s}^*$ is the multiple of $a\tau$ closest to $\frac{\dot{s}}{1+\epsilon}$. 
+
+Breadth-first Search is then applied to the embedded graph in $TC$. The initial state is $S^*$ and the goal state is any vertex within a certain threshold of the desired goal state, e.g. any vertex within $\left( \frac{a\tau^2}{2}, \frac{a\tau}{2} \right)$ of $\left(g, \frac{\dot{g}}{1+\epsilon}\right)$. Safety margin constraints are checked for each trajectory segment that the search algorithm considers.
+
+
+A theorem is presented in this work to show that the complexity of the algorithm. Given the kinodynamic bounds of a problem, the upper bound for this algorithm's running time is
+
+
+\begin{equation}
+O\left( n \left[ \frac{lv\gamma^3}{\epsilon^6} \right] ^d \right)
+\end{equation}
+
+where $d=2,3$, $n$ is the number of bounding halfplanes on all obstacles, and 
+
+\begin{equation}
+\gamma = max \left( \frac{a_{max}(c_1+1)}{c_0}, \sqrt{ \frac{a_{max}(c_1+1)}{2c_0} }, \frac{a_{max}}{v_{max}}\right).
+\end{equation}
+
+
+This work can be used for kinodynamic planning of a rigid robot translating in a 3D space that contains convex polyhedra. This initial work is sufficient for problems with low degrees of freedom, but could not be shown to be a feasible approach to more complicated problems. Randomized approaches were proposed to handle kinodynamic planning problems with high degrees of freedom.
+
+
+
+
+
+An RRT approach was proposed in \cite{lavalle2001randomized}. RRT lends itself to kinodynamic planning very well because part of forming the connections in an RRT is based on the control needed to move from node to node. The main difference is to change the state space from the robot's C-space to the phase-space of the C-space so that each state is a (\emph{position}, \emph{velocity}) pair.
+
+A bidirectional search method can also be applied to this work as in \cite{kuffner2000rrt}.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -15,8 +75,3 @@ Kinodynamic planning using PRM was proposed in \cite{hsu2002randomized}. The sta
 
 The steps of the algorithm are nearly identical to Algorithm 1. However, the randomly sampled points are control values, rather than configurations.
 
-
-
-An RRT approach was proposed in \cite{lavalle2001randomized}. RRT lends itself to kinodynamic planning very well because part of forming the connections in an RRT is based on the control needed to move from node to node. The main difference is to change the state space from the robot's C-space to the phase-space of the C-space so that each state is a (\emph{position}, \emph{velocity}) pair.
-
-A bidirectional search method can also be applied to this work as in \cite{kuffner2000rrt}.
