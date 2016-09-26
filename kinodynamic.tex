@@ -47,10 +47,6 @@ where $d=2,3$, $n$ is the number of bounding halfplanes on all obstacles, and
 
 This work can be used for kinodynamic planning of a rigid robot translating in a 3D space that contains convex polyhedra. This initial work is sufficient for problems with low degrees of freedom, but could not be shown to be a feasible approach to more complicated problems. Randomized approaches were proposed to handle kinodynamic planning problems with high degrees of freedom.
 
-
-
-
-
 An RRT approach was proposed in \cite{lavalle2001randomized}. RRT lends itself to kinodynamic planning very well because part of forming the connections in an RRT is based on the control needed to move from node to node. The main difference is to change the state space from the robot's C-space to the phase-space of the C-space so that each state is a (\emph{position}, \emph{velocity}) pair.
 
 A bidirectional search method can also be applied to this work as in \cite{kuffner2000rrt}.
