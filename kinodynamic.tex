@@ -47,7 +47,17 @@ where $d=2,3$, $n$ is the number of bounding halfplanes on all obstacles, and
 
 This work can be used for kinodynamic planning of a rigid robot translating in a 3D space that contains convex polyhedra. This initial work is sufficient for problems with low degrees of freedom, but could not be shown to be a feasible approach to more complicated problems. Randomized approaches were proposed to handle kinodynamic planning problems with high degrees of freedom.
 
-An RRT approach was proposed in \cite{lavalle2001randomized}. RRT lends itself to kinodynamic planning very well because part of forming the connections in an RRT is based on the control needed to move from node to node. The main difference is to change the state space from the robot's C-space to the phase-space of the C-space so that each state is a (\emph{position}, \emph{velocity}) pair.
+An RRT approach was proposed in \cite{lavalle2001randomized}. RRT lends itself to kinodynamic planning very easily because part of forming the connections in RRT is based on the control needed to move from node to node. The main difference is to change the state space from the robot's C-space to the phase-space of the C-space so that each state is a (\emph{position}, \emph{velocity}) pair.
+
+Differential constraints, such as the non-holonomic constraint, are represented as the implicit function
+
+\begin{equation}
+\label{eq:rrt-kino} \dot{x} = f(x,u)
+\end{equation}
+
+where $u \in U$ and $U$ is the set of all inputs to a system. A numerical approximation for (\ref{eq:rrt-kino}) is needed to find the resulting state from applying $u$ to $x$. The work in \ref{lavalle2001randomized} uses fourth-order Runge-Kutta integration, but a similar numerical approximation technique will suffice.
+
+The randomized kinodynamic planner based on RRT assumes that an environment is static. It extends the notion of an obstacle region in a state space to be a region of inevitable collision. This region contains all the states where the robot is either in collision or at a state where it will not be able to avoid an obstacle due to its dynamics. The region of inevitable collision subsumes the obstacle region in a state space.
 
 A bidirectional search method can also be applied to this work as in \cite{kuffner2000rrt}.
 
