@@ -59,9 +59,9 @@ where $u \in U$ and $U$ is the set of all inputs to a system. A numerical approx
 
 The randomized kinodynamic planner based on RRT assumes that an environment is static. It extends the notion of an obstacle region in a state space to be a region of inevitable collision. This region contains all the states where the robot is either in collision or at a state where it will not be able to avoid an obstacle due to its dynamics. The region of inevitable collision subsumes the obstacle region in a state space.
 
-A bidirectional search method can also be applied to this work as in \cite{kuffner2000rrt}.
+This approach has been shown to work for several systems. For each system, the dynamic model must be defined as well as a distance metric in order to approximate a nearest neighbor for each node. The most complicated system described in experimental results is a three-dimensional spacecraft with a 12-dimensional state space. A bidirectional search method can also be applied to this work as in \cite{kuffner2000rrt}.
 
-
+The RRT approach did not consider dynamic obstacles, however. An approach based on PRM for kinodynamic planning considered moving obstacles. Similar to \cite{lavalle2001randomized}, this work discretizes the state space through sampling.
 
 
 
