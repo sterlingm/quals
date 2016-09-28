@@ -55,29 +55,28 @@ Differential constraints, such as the non-holonomic constraint, are represented 
 \label{eq:rrt-kino} \dot{x} = f(x,u)
 \end{equation}
 
-where $u \in U$ and $U$ is the set of all inputs to a system. A numerical approximation for (\ref{eq:rrt-kino}) is needed to find the resulting state from applying $u$ to $x$. The work in \ref{lavalle2001randomized} uses fourth-order Runge-Kutta integration, but a similar numerical approximation technique will suffice.
+where $u \in U$ and $U$ is the set of all inputs to a system. A numerical approximation for (\ref{eq:rrt-kino}) is needed to find the resulting state from applying $u$ to $x$. The work in \cite{lavalle2001randomized} uses fourth-order Runge-Kutta integration, but a similar numerical approximation technique will suffice.
 
 The randomized kinodynamic planner based on RRT assumes that an environment is static. It extends the notion of an obstacle region in a state space to be a region of inevitable collision. This region contains all the states where the robot is either in collision or at a state where it will not be able to avoid an obstacle due to its dynamics. The region of inevitable collision subsumes the obstacle region in a state space.
 
 This approach has been shown to work for several systems. For each system, the dynamic model must be defined as well as a distance metric in order to approximate a nearest neighbor for each node. The most complicated system described in experimental results is a three-dimensional spacecraft with a 12-dimensional state space. A bidirectional search method can also be applied to this work as in \cite{kuffner2000rrt}.
 
-The RRT approach did not consider dynamic obstacles, however. An approach based on PRM for kinodynamic planning considered moving obstacles. Similar to \cite{lavalle2001randomized}, this work discretizes the state space through sampling.
+% Introduce NOT PRM approach, why needed?, the basics of the approach
+The RRT approach did not consider dynamic obstacles, however. Dynamic obstacles in kinodynamic planning were considered in an PRM approach \cite{hsu2002randomized}. This work plans in the state$\times$time space of a robot by sampling to build an approximation of the search space. A vision module runs simultaneously with the planner to estimate obstacle motion.
 
+% Define search space
+Let $S$ denote the state space of a robot. $S$ can be the Configuration space of a robot, or it can include additional parameters. In the case of a car-like robot, a state $s \in S$ could be $(x,y,\theta)$ or it could also include velocity values, i.e. $(x,y,\theta,\dot{x},\dot{y},\dot{\theta})$. 
 
+% Define query
+Let $ST$ denote the state$\times$time space defined as $S\times[0,+\infty)$. Given an initial state$\times$time pair $(s_0, t_0)$ and a goal pair $(s_g, t_g)$, the output of this planner is a function $u:[t_0, t_g] \rightarrow \Omega$ that leads to a collision-free trajectory $\tau: t \in [t_0, t_g] \rightarrow \tau(t) = (s(t),t)$ such that $s(t_0)=s_0$ and $s(t_g)=s_g$.
 
+% Describe algorithm
+A query is solved by iteratively building a tree-shaped roadmap $T$ whose root is the initial state$\times$time pair through sampling until the goal is connected to the tree. Each iteration randomly selects an existing node on the roadmap, $(s,t)$, a time $t' \leq t_g$, and a control $u$. Then, the control input $u$ is applied to $(s,t)$ for time $t'$. This will form a trajectory in the state$\times$time space. If this trajectory lies in free space, then the endpoint $(s',t')$ is added as a node in the roadmap. The trajectory itself is stored as a directed edge between $(s,t)$ and $(s',t')$ and $u$ is also stored with the new edge. The algorithm exits when a trajectory leads to a new state that is in a neighborhood of the goal state. If some number of iterations $N$ occur and a solution has not been found, then the algorithm will return a failure to find a trajectory.
 
+% Describe experiment setup (dimension of state spaces)
+This approach was applied to two robot systems. The first system was a pair of non-holonomic bases that must remain within a minimum and maximum distance of each other. The state space of this system had 6 dimensions: $(x_1, y_1, \theta_1, x_2, y_2, \theta_2)$. The second system was an air-cushioned robot that moves frictionlessly on a flat table. The state space of this system had 4 dimensions: $(x, y, \dot{x}, \dot{y})$. When adding the time dimension to the state spaces, the algorithm built a roadmap in 7 and 5 dimensions, respectively.
 
+In simulation, obstacle motion is given to the planner before executing the algorithm. The results verify that the planner is able to find a collision-free trajectory in the precense of moving obstacles for the majority of the time over the three cases shown. In experiments with real robots, obstacle motion is captured with an overhead camera. Obstacle motion is passed to the planner before executing and the planner assumes constant velocity for each obstacle. If the obstacle velocities significantly change, the camera will alert the planner with new information so that it can replan a new trajectory with new obstacle trajectories.
 
-
-
-
-
-
-
-
-
-
-Kinodynamic planning using PRM was proposed in \cite{hsu2002randomized}. The state space contains both configuration values and dynamic constraints.
-
-The steps of the algorithm are nearly identical to Algorithm 1. However, the randomly sampled points are control values, rather than configurations.
-
+% Describe results
+Several real robot experiments show that the planner was able to navigate the robot around moving obstacles when obstacle motion is known beforehand.
