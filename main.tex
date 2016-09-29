@@ -356,7 +356,7 @@ Pseudocode for building an RRT can be seen below:
 \caption{RRT Overview}
 \begin{algorithmic}[1]
 \Function {Construct RRT}{$x_{init}$, $x_{goal}$, $\Delta t$} 
-\State T.init($x_{init}$
+\State T.init($x_{init}$)
 \While{$x_{goal} \notin T$}
 \State $x_{rand}$ = newly sampled state
 \State $x_{near}$ = nearest neighbor of $x_{rand}$
@@ -379,6 +379,58 @@ One of the most appealing aspects of RRT is that it is bias towards unexplored a
 Bi-directional searching was presented in \cite{rrt2000kuffer} to significantly increase the performance of RRT. Two trees are instantiated - one at the initial state $x_{init}$ and one at the goal state $x_{goal}$. When the trees connect, the query is complete. At each iteration of the algorithm, one of the trees, $T_0$, is extended by the usual set of procedures in RRT. Let $x_{new}$ be the newly added state to $T_0$. A new procedure, $Connect$, is called to attempt to add $x_{new}$ to the second tree, $T_1$. If this connection is unsucessful, then the trees are swapped so that $T_1$ can be extended.
 
 After its initial presentation, significant efforts were made to improve the performance of RRT for real robot execution \cite{bruce2002real}. This work proposed the Extended RRT (ERRT) algorithm in order to use RRT on a real robot in a dynamic environment. To use RRT in a dynamic environment, an entirely new tree must be created each time the robot needs to change trajectories to adapt to its environment. Using the intuition that prior trees contain states that may lead to the goal, the authors used a waypoint cache to reduce the iterations needed to find the goal. A second addition from this work was an adaptive beta search, which adjusts the distance function to adaptively change the distance between nodes. Simulation experiments show that this approach can significantly reduce planning time when the queries become moderately complicated to solve. This work was also implemented onto the RoboCup F180 robot system, which was the first time RRT was shown to work on a real robot. This system read the positions of static dynamic obstacle through vision data at discrete time steps and used this information when executing the ERRT algorithm. The goal was to plan quickly enough to move around the obstacles as they executed their own independent motion. The authors found that the ERRT algorithm performed poorly when considering continuity in position in velocity. After reverting to planning with no kinematic constraints, ERRT was able to execute quickly enough for real-time motion, but contained noticeably sub-optimal motion. A post-processing step was employed that smoothed out the resulting path well enough for the robots to move at speeds up to 1.7m/s.
+
+
+\subsection{Discussion}
+
+Both sampling-based approaches sample stochastically in order to build an approximation of a C-space. They differ in the data structure used as the C-space approximation. Because each approach builds an approximation of the C-space, the basic versions are not able to find an optimal path to the goal. Several extensions have been made to these approaches to improve the optimality of the resulting paths.
+
+For PRM, most of the immediate work following \cite{PRM} focused on the learning phase of PRM to improve its ability to capture narrow passageways in the C-space. These extensions target one of two aspects: the node generation process or the process of finding a neighborhood of candidate connections. Two improvements to the node generation process are still used today \cite{amato1998obprm,wilmarth1999maprm}. 
+
+
+Obstacle Based PRM (OBPRM) \cite{amato1998obprm} generates nodes based on obstacle surfaces. Thus, the obstacle information guides the node generation process. It can generate both contact configurations (for manipulation planning) and configurations in free space for general path-planning. Each sampled state is translated towards an obstacle until collision is made, and then the configuration is recorded as $c_{in}$. A random direction is selected to translate $c_{in}$ on until a free configuration, $c_{out}$, is found. The contact configuration between $c_{in}$ and $c_{out}$ can be found through binary search.
+Medial Axis PRM (MAPRM) \cite{wilmarth1999maprm} proposes a node generation strategy based on the medial axis of a space. Each new sampled state is retracted onto the medial axis of the robot's configuration-free space. The exact medial axis does not need to computed with this approach. Each sampled configuration is moved towards its nearest neighbor on the graph via bisection until there is no unique closest node on the graph. Both of these strategies help the planner deal with narrow passageways by generating nodes close to obstacles (OBPRM) and generating nodes between obstacles (MAPRM).
+
+A visilibity roadmap approach \cite{nissoux1999visibility} significantly reduces the number of nodes by only keeping nodes that either connect two connected components or are not visible by any "guard" nodes in the roadmap. A node is visible by another node if they can be connected with a straight-line that lies entirely in the free portion of a robot's C-space. Guard nodes are ones that are not visible by other guard nodes. Other strategies used for this 
+
+
+%Algorithm \ref{algo:obprm} outlines how nodes are generated. 
+
+
+%\begin{algorithm}\label{algo:obprm}
+%\caption{OBPRM Node Generation}
+%\begin{algorithmic}[1]
+%\Function {Node Generation}{} 
+%\State $x_{rand} \leftarrow$ sampled configuration
+%\State $p_r \leftarrow$ reference point on robot at $x_{rand}$
+%\State $p_o \leftarrow$ point on obstacle
+%\State Translate robot until $p_r$ and $p_o$ coincide
+%\State $c_{in} \leftarrow$ configuration of robot after translation
+%\State $d \leftarrow$ random direction emanating from $c_{in}$
+%\State Translate in direction $d$ in C-space
+%\State $c_{out} \leftarrow$ free configuation in direction $d$
+%\State Find contact configuration between $c_{in}$ and $c_{out}$ with Binary Search
+%\State $c_{con} \leftarrow$ contact configuration
+%\If {looking for contact configuration}
+%	\State Return $c_{con}$
+%\Else
+%	\State Translate $c_{con}$ in direction $d$
+%	\State Return $c_{con}$ after translation
+%\EndIf
+%\EndFunction
+%\end{algorithmic}
+%\end{algorithm}
+
+
+
+
+
+
+
+
+Using these approaches to find an optimal path was explored in \cite{karaman2011sampling}. 
+
+
 
 \input{kinodynamic}
 
