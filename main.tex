@@ -385,43 +385,17 @@ After its initial presentation, significant efforts were made to improve the per
 
 Both sampling-based approaches sample stochastically in order to build an approximation of a C-space. They differ in the data structure used as the C-space approximation. Because each approach builds an approximation of the C-space, the basic versions are not able to find an optimal path to the goal. Several extensions have been made to these approaches to improve the optimality of the resulting paths.
 
-For PRM, most of the immediate work following \cite{PRM} focused on the learning phase of PRM to improve its ability to capture narrow passageways in the C-space. These extensions target one of two aspects: the node generation process or the process of finding a neighborhood of candidate connections. Two improvements to the node generation process are still used today \cite{amato1998obprm,wilmarth1999maprm}. 
-
+For PRM, most of the immediate work following \cite{PRM} focused on the learning phase of PRM to improve its ability to capture narrow passageways in the C-space. This is because narrow passageways are the most significant challenge when using a sampling-based approach. Extensions of the PRM algorithm target one of two aspects: the node generation process or the process of finding a neighborhood of candidate connections. 
 
 Obstacle Based PRM (OBPRM) \cite{amato1998obprm} generates nodes based on obstacle surfaces. Thus, the obstacle information guides the node generation process. It can generate both contact configurations (for manipulation planning) and configurations in free space for general path-planning. Each sampled state is translated towards an obstacle until collision is made, and then the configuration is recorded as $c_{in}$. A random direction is selected to translate $c_{in}$ on until a free configuration, $c_{out}$, is found. The contact configuration between $c_{in}$ and $c_{out}$ can be found through binary search.
-Medial Axis PRM (MAPRM) \cite{wilmarth1999maprm} proposes a node generation strategy based on the medial axis of a space. Each new sampled state is retracted onto the medial axis of the robot's configuration-free space. The exact medial axis does not need to computed with this approach. Each sampled configuration is moved towards its nearest neighbor on the graph via bisection until there is no unique closest node on the graph. Both of these strategies help the planner deal with narrow passageways by generating nodes close to obstacles (OBPRM) and generating nodes between obstacles (MAPRM).
+Medial Axis PRM (MAPRM) \cite{wilmarth1999maprm} proposes a node generation strategy based on the medial axis of a space. Each new sampled state is retracted onto the medial axis of the robot's configuration-free space. The exact medial axis does not need to computed with this approach. Each sampled configuration is moved towards its nearest neighbor on the graph via bisection until there is no unique closest node on the graph. An approach to sampling based on Gaussian distribution was presented in \cite{boor1999gaussian}. This approach assigns probability values to C-space regions based on their distance from C-space obstacles. Higher values are given to areas closer to obstacles. Each iteration of building the graph does the following: a configuration is obtained via uniform sampling, then a distance value $d$ is chosen based on a Gaussian distribution uncertainty, and a second configuration is obtained at distance $d$ from the first sampled configuration, i.e. closer to an obstacle. All of these strategies help the planner deal with narrow passageways by generating nodes in regions close to obstacles, which are the hardest regions to plan in.
 
 A visilibity roadmap approach \cite{nissoux1999visibility} significantly reduces the number of nodes by only keeping nodes that either connect two connected components or are not visible by any "guard" nodes in the roadmap. A node is visible by another node if they can be connected with a straight-line that lies entirely in the free portion of a robot's C-space. Guard nodes are ones that are not visible by other guard nodes. 
 
 Significant reductions in planning time were achieved by taking a "lazy" approach \cite{bohlin2000path}. This work builds a graph without considering collision. After a shortest path is found, collision checking is performed on the path. If collision is found, then the corresponding nodes and/or edges are removed from the graph, and a new shortest path is found. This process repeats until a shortest path is found that contains no collision.
 
 
-%Algorithm \ref{algo:obprm} outlines how nodes are generated. 
-
-
-%\begin{algorithm}\label{algo:obprm}
-%\caption{OBPRM Node Generation}
-%\begin{algorithmic}[1]
-%\Function {Node Generation}{} 
-%\State $x_{rand} \leftarrow$ sampled configuration
-%\State $p_r \leftarrow$ reference point on robot at $x_{rand}$
-%\State $p_o \leftarrow$ point on obstacle
-%\State Translate robot until $p_r$ and $p_o$ coincide
-%\State $c_{in} \leftarrow$ configuration of robot after translation
-%\State $d \leftarrow$ random direction emanating from $c_{in}$
-%\State Translate in direction $d$ in C-space
-%\State $c_{out} \leftarrow$ free configuation in direction $d$
-%\State Find contact configuration between $c_{in}$ and $c_{out}$ with Binary Search
-%\State $c_{con} \leftarrow$ contact configuration
-%\If {looking for contact configuration}
-%	\State Return $c_{con}$
-%\Else
-%	\State Translate $c_{con}$ in direction $d$
-%	\State Return $c_{con}$ after translation
-%\EndIf
-%\EndFunction
-%\end{algorithmic}
-%\end{algorithm}
+The RRT approach also received a significant amount of work to improve its speed and sampling.
 
 
 
