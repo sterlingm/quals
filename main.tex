@@ -393,23 +393,32 @@ A visilibity roadmap approach \cite{nissoux1999visibility} significantly reduces
 Significant reductions in planning time were achieved by taking a "lazy" approach \cite{bohlin2000path}. This work builds a graph without considering collision. After a shortest path is found, collision checking is performed on the path. If collision is found, then the corresponding nodes and/or edges are removed from the graph, and a new shortest path is found. This process repeats until a shortest path is found that contains no collision.
 
 
-The RRT approach also received a significant amount of work to improve its speed and sampling.
-
-Using RRT for real-time robot navigation was presented in \cite{bruce2002real}. This work proposed the Extended RRT (ERRT) algorithm in order to use RRT on a real robot in a dynamic environment. To use the basic version of RRT in a dynamic environment, an entirely new tree must be created each time the robot needs to change trajectories to adapt to its environment. Using the intuition that prior trees contain states that may lead to the goal, the authors used a waypoint cache to reduce the iterations needed to find the goal. A second addition from this work was an adaptive beta search, which adjusts the distance function to adaptively change the distance between nodes. Simulation experiments show that this approach can significantly reduce planning time when the queries become moderately complicated to solve. This work was also implemented onto the RoboCup F180 robot system, which was the first time RRT was shown to work on a real robot. This system read the positions of static dynamic obstacle through vision data at discrete time steps and used this information when executing the ERRT algorithm. The goal was to plan quickly enough to move around the obstacles as they executed their own independent motion. The authors found that the ERRT algorithm performed poorly when considering continuity in position in velocity. After reverting to planning with no kinematic constraints, ERRT was able to execute quickly enough for real-time motion, but contained noticeably sub-optimal motion. A post-processing step was employed that smoothed out the resulting path well enough for the robots to move at speeds up to 1.7m/s.
-
+The RRT approach also received a significant amount of work to improve its overall speed and sampling. Using RRT for real-time robot navigation was presented in \cite{bruce2002real}. This work proposed the Extended RRT (ERRT) algorithm in order to use RRT on a real robot in a dynamic environment. To use the basic version of RRT in a dynamic environment, an entirely new tree must be created each time the robot needs to change trajectories to adapt to its environment. Using the intuition that prior trees contain states that may lead to the goal, the authors used a \emph{waypoint cache} to reduce the iterations needed to find the goal. A waypoint cache is a set of states that were used in a previous path. When a new path must be found, the points in the waypoint cache are used as samples. Simulation experiments show that this approach can significantly reduce planning time when the queries become complicated to solve. This work was also implemented onto the RoboCup F180 robot system, which was the first time RRT was shown to work on a real robot. 
 
 Dynamic-Domain RRT \cite{yershova2005dynamic} is an approach to improve the node generation of RRT by limiting the size of the sampling area. If $v$ is a boundary point at some distance $R$ from a C-space obstacle, then the \emph{boundary domain} is the intersection of the Voroni region of $v$ and a sphere of radius $R$ centered at $v$. The boundary domains of each existing point on the RRT create the \emph{Dynamic Domain} for the RRT. Rather than adding nodes sampled from the entire state space, only nodes that are within the Dynamic Domain of an RRT are considered.
 
+An Obstacle Based RRT approach \cite{tang2006obstacle} uses a group of growth operators to generate nodes that are close to obstacles. These operators use vectors between an obstacle's vertices to determine what direction to move a sample in. 
 
-The work done in \cite{zhang2008efficient} retracts nodes with a local optimization approach.
-
-
-
+The work done in \cite{zhang2008efficient} retracts nodes with a local optimization approach. Given a sample $q_r$ that is in collision with an obstacle, the algorithm makes an initial guess $q_n$, and then creates a new sample $q_c$ in the contact space that is found between $q_r$ and $q_n$. A set of nodes, $S$, can be found in the contact space that are within a distance threshold of $q_r$. The algorithm then performs an optimization loop in order to find the node in $S$ closest to the original sample $q_r$.
 
 
-Using these approaches to find an optimal path was explored in \cite{karaman2011sampling}. 
+
+Using these approaches to find an optimal path was explored in \cite{karaman2011sampling}. Three algorithms, PRM*, RRG, and RRT*, were proposed that extend the standard PRM and RRT algorithms. Analysis in this paper shows that the three algorithms presented are 1) asymptotically optimal, and 2) within a constant factor of the computational complexity of the standard sampling algorithms. 
+
+The PRM* algorithm is only slightly different from the standard version. In the standard version of PRM, the nearest neighbors for a sample are obtained with a fixed radius of the sample. The PRM* algorithm uses a variable radius that is a function of the number of nodes in the roadmap. Let $n$ denote the number of vertices in the roadmap. The radius function used in PRM* is 
+
+\begin{equation}
+r(n) = 2(1+1/d)^{1/d}*(\mu(X_{free})/ \zeta_d)^{1/d} * (log(n)/n)^{1/d}
+\end{equation}
+
+where $d$ is the dimension of the state space $X$, $\mu(X_{free})$ is the volume of the obstacle-free space, and $\zeta_d$ is the volume of the unit ball in the $d$-dimensional Euclidean space. The radius decreases as $n$ increases and the rate of decay is proportional to $log(n)$.
+
+Similar to PRM, the PRM* algorithm is meant to handle multiple-query problems. The \emph{Rapidly exploring Random Graph} (RRG) algorithm is more suited for single-query problems. It is an incremental algorithm that builds a connected roadmap to use for planning. It is an extension of the RRT algorithm with one key difference: when a new vertex is added to the vertex set, all vertices that already exist in the set within a certain radius are connected to the new vertex. This means that the resulting data structure is a graph rather than a tree.
+
+RRT* modifies RRG by maintaining a tree structure rather than a graph. A subset of edges is considered redundant and removed so that cycles are not formed. These edges are ones that are not part of the shortest path from the root of the tree to a vertex.
 
 
+Speaking generally, sampling-based approaches work well for solving most robot motion planning problems. However, the time it takes to rebuild roadmaps, plan a new path, and recompute a new trajectory can be too expensive to avoid obstacles of unforeseen motion. The RRT approach is the most successful in handling real-time robot motion planning because it is designed to handle single-query problems. Also, the RRT approach extends intuitively to Kinodynamic Planning (Section \ref{sec:kino}) which can significantly speed up the time to compute an entire trajectories (instead of only a path).
 
 \input{kinodynamic}
 
