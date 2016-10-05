@@ -13,12 +13,12 @@
 % Combinatorial methods
 
 % Sampling
-\nocite{PRM}
-\nocite{RRT}
+%\nocite{PRM}
+%\nocite{RRT}
 
 % RAMP
-\nocite{EPN_Adaptive}
-\nocite{RAMP}
+%\nocite{EPN_Adaptive}
+%\nocite{RAMP}
 
 
 \author{Sterling McLeod}
@@ -424,18 +424,25 @@ Speaking generally, sampling-based approaches work well for solving most robot m
 
 \section{Real-time Adaptive Motion Planning (RAMP)}
 	
-Real-time Adaptive Motion Planning (RAMP) \cite{RAMP} is a framework that utilizes evolutionary computation for real-time planning and execution in dynamic environments. 
+		
+One of the key difficulties in robot motion planning is planning in high-dimensional state spaces. Sampling-based methods are able to find a path in large state spaces, but they can be far from optimal and re-building roadmaps is expensive for real-time planning. The Real-time Adaptive Motion Planning (RAMP) \cite{RAMP} framework utilizes evolutionary computation for real-time planning and execution of high-DOF robots in dynamic environments.
 
-Evolutionary computation is a field designed to leverage sophisticated data structures with genetic algorithms to search through a state space \cite{michalewicz2013genetic}. They are particularly suited to approximate optimization problems. One of the key difficulties in robot motion planning is extremely large state spaces. Sampling-based methods are able to find a path in large state spaces, but they can be far from optimal and re-sampling is expensive for real-time planning. An evolutionary computation approach allows us to change our set of samples very quickly and incorporate optimization into our state spaces searches. Using evolutionary computation for path planning was first proposed in \cite{EPN_Adaptive} and has since been extended to the motion planning framework RAMP.
+
+RAMP is a framework that utilizes evolutionary computation for real-time planning and execution in dynamic environments. Evolutionary computation is a field designed to leverage sophisticated data structures with genetic algorithms to rapidly search through a solution space \cite{michalewicz2013genetic}. They are particularly suited to approximate optimization problems. They are useful for motion planning because an evolutionary computation approach to planning allows us to drastically change a robot's trajectory very quickly and incorporate optimization into our state spaces searches. Using evolutionary computation for path planning was first proposed in \cite{EPN_Adaptive}. 
+
+\subsection{Overview}\label{subseq:RAMP Overview}
+
+A set of trajectories, called a \emph{population}, is maintained throughout the entire run time. Each trajectory in the population is a chromosome. At each \emph{generation}, 1-2 randomly selected chromosomes are modified via genetic operators. The new chromosome(s) may replace other trajectories in the population. 
+
+
+The framework interweaves three separate procedures called planning cycles, control cycles, and sensing cycles. At each planning cycle (or \emph{generation}), the population of trajectories is modified by a genetic operator. Control cycles are procedures that select a trajectory from the population that will be executed by the robot and update the starting motion state of each trajectory in the population. The frequency of control cycles is adaptive based on constraints needed to satisfy in order to switch trajectories. Sensing cycles are procedures that update information about the environment.
 
 
 \subsection{Modification}
 
-A population of trajectories is maintained throughout the entire run time. Each trajectory in the population is a chromosome. At each \emph{generation}, 1-2 randomly selected chromosomes are modified via genetic operators. The new chromosome(s) may replace other trajectories in the population. 
 
 The basic modification operators are described in \cite{EPN_Adaptive}. They are \emph{Insert}, \emph{Delete}, \emph{Swap}, \emph{Change}, and \emph{Crossover}. These modification operations are computationally inexpensive so it is possible to perform 100+ within a second. The operators can result in drastic changes to a path. This means that a new feasible path may be found in a very small amount of time, which facilitates real-time path planning that can react to changes in an environment. Modification operators can be added, removed, or replaced based on the application of the robot. For instance, a \emph{Stop} operator was introduced in \cite{RAMP} that stops the base of a mobile manipulator for a random amount of time. This operator promoted decoupling of the base and manipulator, which was desirable to exploit redundancy. 
 
-The framework interweaves three separate procedures called planning cycles, control cycles, and sensing cycles. At each planning cycle (or \emph{generation}), the population of trajectories is modified. In later implementations (***Cite my own paper, what if not published?***), motion error is incorporated into the population during a planning cycle. The planning cycles occur as frequently as possible. Control cycles are procedures that select a trajectory from the population that will be executed by the robot and update the starting motion state of each trajectory in the population. The frequency of control cycles is adaptive based on constraints needed to satisfy in order to switch trajectories. Sensing cycles are procedures that update information about the environment.
 
 \subsection{Evaluation}
 
@@ -470,7 +477,15 @@ The evaluation for infeasible trajectories should be designed to differentiate w
 
 Sensing cycles update the latest environment changes for the evaluation function. For dynamic obstacles, simple trajectories are predicted to use for collision detection in CT-space. An obstacle trajectory is predicted by assuming the sensed velocity is constant. Therefore, the predicted trajectory will be either a straight-line or circular arc. These are used for collision detection when evaluating the population. The obstacles may not follow what RAMP predicts, but future changes will be captured in future sensing cycles. Since sensing cycles occur frequently, using simple trajectories is sufficient for navigation, as shown through various experiments.
 
- 
+
+\subsection{Discussion}
+
+RAMP excels when planning with high-DOF robots, such as mobile manipulators. A video of results shows several mobile manipulators being planned independently (using each other robot as dynamic obstacles) to work in a task environment.
+
+While RAMP was shown in \cite{RAMP} to perform well with mobile manipulators, it only considered mobile bases that were capable of holonomic motion. The framework was extended to work with non-holonomic bases in \cite{mcleod2016real}. This work modified the original RAMP approach by converting holonomic trajectory segments to non-holonomic segments at real-time for the robot to execute. A method to switch trajectories with smooth curves was presented, and the control cycles were made to adapt to the robot's dynamics, rather than being fixed.
+
+RAMP has also been applied to continuum manipulator robot models \cite{xiao2010real} and to the pursuit-evasion domain \cite{annas2009intelligent}.
+
 
 
 \section{Collision Detection}
