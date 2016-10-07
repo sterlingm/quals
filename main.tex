@@ -31,7 +31,7 @@
 
 \section{Introduction}
 
-	Robot Motion Planning is the problem of moving a robot from an initial state to a goal state in some environment. States can be positions, or they can be high-dimensional configurations. They can also include dynamic information, such as a specific velocity and/or acceleration.	Motion planning is required in almost every robotics tasks that exists. Unfortunately, this problem is made difficult by several things: 
+	Robot Motion Planning is the problem of moving a robot from an initial state to a goal state in an environment that may contain obstacles. States can be planar positions, or they can be high-dimensional configurations. They can also include dynamic information, such as a specific velocity and/or acceleration.	Motion planning is required in almost every robotics tasks that exists. Unfortunately, this problem is made difficult by several aspects: 
 	
 	\begin{itemize}
 	\item \emph{Kinematic structure of a robot}
@@ -162,7 +162,7 @@ A \emph{simplicial complex} satisfies the following conditions:
 \item The intersection of any two simplexes in the complex is a common face of both simplexes
 \end{enumerate}
 
-Essentially, all of cells must be connected and share boundaries. Visually, this results in a set of cells that fit together nicely, as in Figure \ref{simplicial-complex}. 
+Essentially, all of cells must be connected and share boundaries. 
 
 A \emph{singular complex} is a generalized version of simplicial complexes that can be defined on a manifold of $\mathbb{R}^n$. Singular complexes also satisfy two conditions:
 
@@ -173,19 +173,17 @@ A \emph{singular complex} is a generalized version of simplicial complexes that 
 
 \subsubsection{Approaches}
 
-Vertical Cell Decomposition \cite{vert_cell_decomp} is perhaps the most common method for cell decomposition in 2D. The method partitions the free C-space into triangles and trapezoids. These simple shapes represent the cells of $C_{free}$. 
+Vertical Cell Decomposition \cite{vert_cell_decomp} partitions the free C-space into triangles and trapezoids. These simple shapes represent the cells of $C_{free}$. 
 
-At each vertex in $C_{obs}$, vertical rays are extended above and below the vertex until another points in $C_{obs}$ is reached. These rays will define edges for the polygonal cells that partition $C_{free}$. Refer to Figure \ref{narrow} for a visual description of the method. One can see that the polygons creating $C_{obs}$ can be either convex or concave and that the cells in $C_{free}$ will be either triangular or trapezoidal. 
+At each vertex in $C_{obs}$, vertical rays are extended above and below the vertex until another points in $C_{obs}$ is reached. These rays will define edges for the polygonal cells that partition $C_{free}$. The polygons that form $C_{obs}$ can be either convex or concave and the cells in $C_{free}$ will be either triangular or trapezoidal. 
 
 Building a roadmap from the partitioning amounts to choosing sample points from each cell and connecting them to edges of the cell. More formally, a roadmap $G(V,E)$ is defined as follows: For every cell, $C_i$, define an interior point $q_i$. For each vertical edge in $C_i$, define a point $s_i$. Add the points $q_i$ and $s_i$ to $V$. Then, create an edge, $e_i$, between $q_i$ and the sample points on its cell's vertical edges. Add $e_i$ to $E$. The resulting graph is a roadmap that can be used for efficient path planning.
 
-The running time of this algorithm is $O(nlogn)$ when using the \emph{line-sweep} principle. This principle is the idea of a line sweeping across the space and noting where there are interesting points in the space. In this application, the line is vertical and the interesting points are the vertices of obstacles.
+The running time of this algorithm is $O(nlogn)$ when using the \emph{line-sweep} principle. This principle is the idea of a line sweeping across the space and noting where there are interesting points in the space. In this application, the line is vertical and the interesting points are the vertices of obstacles. An \emph{event} is each time the line finds an interesting point. 
 
-In Figure \ref{line-sweep}, the vertical lines show where the line would find interesting points and stop. An \emph{event} is each time the line finds an interesting point. Figure \ref{line-sweep-events} shows the status of the list of edges after each event.
+Triangulation is an alternative to vertical decomposition for polygonal spaces. The cells formed from triangulation will be, discernibly, triangles, whereas the cells formed from vertical decomposition are a mix of triangles and trapezoids. The running time of a naive approach to triangulation is $O(n^3)$. That is far too long, even for some 3D spaces. However, the running time can be reduced to $O(n^2logn)$ with radial sweeping.
 
-Triangulation \cite{something} is an alternative to vertical decomposition for polygonal spaces. The cells formed from triangulation will be, discernibly, triangles, whereas the cells formed from vertical decomposition are a mix of triangles and trapezoids. Refer to Figure \ref{triangulation} and note the difference between the partitioning and the partitioning in Figure \ref{line-sweep-events}. The running time of a naive approach to triangulation is $O(n^3)$. That is far too long, even for some 3D spaces. However, the running time can be reduced to $O(n^2logn)$ with radial sweeping \cite{something}.
-
-Cylindrical decomposition \cite{something} is similar to vertical decomposition in that it works by extending rays from all the obstacle vertices, but in the cylindrical method the rays do not stop until they reach the boundary of the C-space. This results in cells that alternate between regions of $C_{free}$ and $C_{obs}$. 
+Cylindrical decomposition is similar to vertical decomposition in that it works by extending rays from all the obstacle vertices, but in the cylindrical method the rays do not stop until they reach the boundary of the C-space. This results in cells that alternate between regions of $C_{free}$ and $C_{obs}$. 
 
 \subsubsection{3D Decomposition}
 
@@ -212,7 +210,13 @@ Given (\ref{eq:comb_complex}), the total number of paths to move from one corner
 |P| = {m+n \choose m}
 \end{equation}
 
-These equations assume that the robot would never have a cyclic path. This assumption may hold for path planning in static environments, but it is one that cannot be made for the more general problem of path planning in dynamic environments. A robot may need to move back to a previous position due to the environment changing or the robot made need a path with a new direction to avoid an obstacle. Thus, the number of possible paths for a real-time motion planning system would be even more than the directed acyclic graph case. While it is good to understand the theoretical components of these algorithms, it would be far too time-consuming to run any combinatorial method on a real-time motion planning system. 
+These equations assume that the robot would never have a cyclic path. This assumption may hold for path planning in static environments, but it is one that cannot be made for the more general problem of path planning in dynamic environments. A robot may need to move back to a previous position due to the environment changing or the robot made need a path with a new direction to avoid an obstacle. Thus, the number of possible paths for a real-time motion planning system would be even more than the directed acyclic graph case. 
+
+
+Another significant issue with these methods is that the exact C-space must be computed to perform the decomposition methods. Constructing the C-space will scale exponentially with the degrees of freedom of a robot and the number of obstacles in the workspace.
+
+
+While it is good to understand the theoretical components of these algorithms, it would be far too time-consuming to run any combinatorial method on a real-time motion planning system. 
 
 
 
@@ -324,7 +328,7 @@ A local planner is utilized in order to create edges within the graph. Designing
 
 Determining the neighborhood of a node is based on the value of a distance function between two nodes. The distance function is closely related to the choice of local planner because the distance should be proportional to the chance that the local planner can connect the two nodes with a collision-free path. For straight line local planners, the distance function can be the Euclidean distance between the nodes' positions in the robot's workspace. For more complicated local planners, however, more involved distance functions must be defined.  
 
-Narrow passages are a critical concern during the learning phase. A narrow passage is a region that is mostly enclosed by obstacles. These regions are of concern because it is difficult to sample inside of them and to find connections to nodes inside the regions. If a robot must pass through a narrow passage to reach its goal, then the learning phase may be prolonged to the point of being impractical. In Figure \ref{narrow}(a), the free space between the two obstacles could be considered a narrow passage. With uniform sampling, there is a small chance that a node in the passage will be found.  
+Narrow passages are a critical concern during the learning phase. A narrow passage is a region that is mostly enclosed by obstacles. These regions are of concern because it is difficult to sample inside of them and to find connections to nodes inside the regions. If a robot must pass through a narrow passage to reach its goal, then the learning phase may be prolonged to the point of being impractical. 
 
 The PRM method tries to address narrow passages by performing an \emph{expansion} step after constructing the graph, in order to improve the graph's connectivity. To accomplish that, nodes that lie in narrow passages are selected and an attempt to find neighboring points in $C_f$ is made. 
 
@@ -387,7 +391,7 @@ The RRT approach has several nice properties. Similar to PRM, the RRT algorithm 
 
 One of the most appealing aspects of RRT is that it is bias towards unexplored areas of a space. This occurs because the selection of new states is based on the nearest neighbor calculation. As RRT explores a space, the regions separated by the tree's edges become close to voroni regions of the space.
 
-Bi-directional searching was presented in \cite{rrt2000kuffer} to significantly increase the performance of RRT. Two trees are instantiated - one at the initial state $x_{init}$ and one at the goal state $x_{goal}$. When the trees connect, the query is complete. At each iteration of the algorithm, one of the trees, $T_0$, is extended by the usual set of procedures in RRT. Let $x_{new}$ be the newly added state to $T_0$. A new procedure, $Connect$, is called to attempt to add $x_{new}$ to the second tree, $T_1$. If this connection is unsucessful, then the trees are swapped so that $T_1$ can be extended.
+Bi-directional searching was presented in \cite{kuffner2000rrt} to significantly increase the performance of RRT. Two trees are instantiated - one at the initial state $x_{init}$ and one at the goal state $x_{goal}$. When the trees connect, the query is complete. At each iteration of the algorithm, one of the trees, $T_0$, is extended by the usual set of procedures in RRT. Let $x_{new}$ be the newly added state to $T_0$. A new procedure, $Connect$, is called to attempt to add $x_{new}$ to the second tree, $T_1$. If this connection is unsucessful, then the trees are swapped so that $T_1$ can be extended.
 
 
 \subsection{Discussion}
@@ -507,8 +511,9 @@ RAMP has also been applied to continuum manipulator robot models \cite{xiao2010r
 
 
 
-\section{Conclusion}
-    This is my Conclusion.
+\section{Conclusions and Open Problems}
+    
+    Real-time motion planning still has open problems that stop robots from driving all around in our world.
 
 
 \bibliography{biblio}
