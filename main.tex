@@ -225,62 +225,14 @@ While it is good to understand the theoretical components of these algorithms, i
 
 In an artificial potential field approach \cite{khatib1986real}, a robot is treated like a particle in a gradient field. The goal state emits an attractive force that acts on the robot and the obstacles emit repulsive forces. The combination of these forces results in a vector field that guides the robot from its initial state to the goal state. At each location, a robot's motion is dictated by the magnitude and direction of the gradient vector at the location. This approach integrates high-level path planning with lower-level robot control to achieve both obstacle avoidance and task-consistent motion simultaneously.
 
-An artificial potential fields approach can react to changes in an environment quickly by simply editing the function coefficients. However, effective tuning of these coefficients can be a challenge. Encountering local minima is the largest problem when using this approach. Even if all coefficients are reasonably tuned, a robot can still be led into an area dominated by repulsive forces that will lead the robot to moving in a loop. The most common method of escaping local minima is random walks. When it is detected that the robot has encountered a local minima, a random direction is chosen and the robot is moved in that direction for a variable amount of time. After moving in a random direction, it is hoped that the robot will have escaped the local minima region and can resume moving towards the goal.
+Encountering local minima is the largest problem when using this approach. If a robot is led into an area dominated by repulsive forces, then that area will lead the robot to move in a loop. The most common method of escaping local minima is random walks. When it is detected that the robot has encountered a local minima, a random direction is chosen and the robot is moved in that direction for a variable amount of time. After moving in a random direction, it is hoped that the robot will have escaped the local minima region and can resume moving towards the goal.
 
 Another issue with using potential fields to move a robot is that the exact C-space must be computed. As discussed before, this is usually infeasible when the C-space is high-dimensional.
 
-Potential fields inspired the Elastic Strips approach described below that addresses these problems by using a higher-level planner to maintain global path information, and reduce the necessary parts of the C-space that must be computed to use potential field controllers.
+Potential fields inspired the Elastic Strips approach described in Section \ref{sec:elastic} that addresses these problems by using a higher-level planner to maintain global path information, and reduce the necessary parts of the C-space that must be computed to use potential field controllers.
 
 
-\subsection{Elastic Strips}
 
-Elastic Strips \cite{brock2002elastic} is an approach to real-time motion planning in unstructured dynamic environments that leverages potential fields and a decomposition-based path-planning strategy \cite{brock2001decomposition} to produce motion that allows a robot to avoid obstacles while also moving towards a goal.
-
-An elastic strip is a volume formed by the union of a set of homotopic paths. These paths are slight modifications to a candidate path that satisfies global constraints of a robot's task, such as moving to a goal state. The volume, also called a \emph{tunnel}, is obtained by the decomposition-based strategy in \cite{brock2001decomposition}. The volume is "elastic" because it can be slightly modified by modifying one of the homotopic paths while maintaining topological properties of the candidate path and local constraints such as obstacle avoidance. 
-
-
-\subsubsection{Obstacle Avoidance}
-
-The Elastic Strips framework employs local potential fields to modify trajectories in response to changes in the environment. The potential fields act on the future points along the robot's path.
-
-A path is represented as a discrete set of configurations. Let $P_c$ be the candidate path for a robot. To avoid obstacles, a new candidate path, $P_c'$, must be formed by modifying $P_c$ so that $P_c'$ lies within the elastic tunnel. To modify a path, two work space forces are created from two potential fields and applied to the path's configurations. The two forces are $V_{external}$ and $V_{internal}$. The external force is based on the robot's proximity to obstacles. For a point $p$ on the robot, $V_{ext}$ is defined as
-
-\[ \begin{cases} 
-      \frac{1}{2}k_r(d_0 - d(p))^2 & \text{if}  d(p) < d_0 \\
-      0 & \text{otherwise}
-   \end{cases}
-\]
-
-
-where $d(p)$ is the distance between $p$ and the closet obstacle, $d_0$ is the region of influence around obstacles, and $k_r$ is a scalar. The resulting force from $V_{ext}$ is
-
-\begin{equation}
-\textbf{F}^{ext}_p = -\nabla V_{ext} = k_r(d_0-d(p))\frac{d}{||d||}
-\end{equation}
-
-where $d$ is the vector between $p$ and the closest point on an obstacle. This repulsive force, $\textbf{F}^{rep}_p$, will modify the existing configurations by pushing them away from obstacles. If the robot is not close to an obstacle, then the repulsive force has no effect.
-
-If an obstacle moves away from the robot after applying a repulsive force, then the robot's path should contract in order to make the path shorter. This is achieved by an internal force generated by virtual springs at each of the robot's control points along a path. This force is meant to bring each configuration closer to its adjacent configurations on a path. The internal force acting at control point $p^i_j$ on the $j$th link at configuration $q_i$ connected to configurations $q_{i-1}$ and $q_{i+1}$ is defined as
-
-\begin{equation}
-\textbf{F}^{int}_{i,j} = k_c\left( \frac{d^{i-1}_j}{d^{i-1}_j+d^i_j} (p^{i+1}_j-p^{i-1}_j)-(p^i_j-p^{i-1}_j) \right)
-\end{equation}
-
-
-%\begin{equation}
-%V_{external}(p) = \left\{ \frac{1}{2}k_r(d_0 - d(p))^2 \text{if d(p) < d_0}
-%\end{equation}
-
-
-There are two scenarios that result in a failure to find a new path. One scenario is when a topological change occurs in the robot's configuration free space. Because the modification method maintains the topological properties of the candidate path, there will not be a successful modification if a topological change occurs.
-
-The second scenario is when a structural local minimum occurs. A structural local minima is when the configuration free space around the candidate path has become so narrow that it cannot be modified enough to avoid an obstacle. Note that this is not a local minima in the workspace of the robot. A separate planner can be employed to move through the narrow passageway.
-
-\subsection{Discussion}
-
-The Elastic Strips method was extended to the Elastic Roadmaps method \cite{yang2009elastic} in order to further reduce the necessary C-space information needed. The Elastic Roadmaps method utilizes the OBPRM method to create milestones for a robot's path, and these milestones are labelled as task-consistent, valid, or invalid based on the robot's ability to execute the path in the current environment. This approach has been shown to successfully plan a mobile manipulator with task constraints in the presence of unpredictable moving obstacles. However, it still may suffer issues moving a robot between milestones, or not be able to find a path due to the incompleteness of OBPRM.
-
-Using potential fields as controllers as an approach to generate motion while satisfying other constraints has inspired much work for general robot motion planning. These approaches, combined with the operational space \cite{khatib1987unified}, have been most realized in planning for highly constrained motion planning, such as humanoid models that need to move toward a goal while maintaining balance and posture. These problems, however, do not generally have strict real-time requirements.
 
 	
 \section{Sampling Based Methods}
@@ -437,7 +389,61 @@ Speaking generally, sampling-based approaches work well for solving most robot m
 
 \input{kinodynamic}
 
-\section{Real-time Adaptive Motion Planning (RAMP)}
+\section{Real-time Motion Planning} \label{sec:real-time}
+
+Real-time Motion Planning is concerned with enabling a robot to react to changes in an environment.
+
+\subsection{Elastic Strips} \label{sec:elastic}
+
+Elastic Strips \cite{brock2002elastic} is an approach to real-time motion planning in unstructured dynamic environments that leverages potential fields and a decomposition-based path-planning strategy \cite{brock2001decomposition} to produce motion that allows a robot to avoid obstacles while also moving towards a goal.
+
+An elastic strip is a volume formed by the union of a set of homotopic paths. These paths are slight modifications to a candidate path that satisfies global constraints of a robot's task, such as moving to a goal state. The volume, also called a \emph{tunnel}, is obtained by the decomposition-based strategy in \cite{brock2001decomposition}. The volume is "elastic" because it can be slightly modified by modifying one of the homotopic paths while maintaining topological properties of the candidate path and local constraints such as obstacle avoidance. 
+
+
+\subsubsection{Obstacle Avoidance}
+
+The Elastic Strips framework employs local potential fields to modify trajectories in response to changes in the environment. The potential fields act on the future points along the robot's path.
+
+A path is represented as a discrete set of configurations. Let $P_c$ be the candidate path for a robot. To avoid obstacles, a new candidate path, $P_c'$, must be formed by modifying $P_c$ so that $P_c'$ lies within the elastic tunnel. To modify a path, two work space forces are created from two potential fields and applied to the path's configurations. The two forces are $V_{external}$ and $V_{internal}$. The external force is based on the robot's proximity to obstacles. For a point $p$ on the robot, $V_{ext}$ is defined as
+
+\[ \begin{cases} 
+      \frac{1}{2}k_r(d_0 - d(p))^2 & \text{if}  d(p) < d_0 \\
+      0 & \text{otherwise}
+   \end{cases}
+\]
+
+
+where $d(p)$ is the distance between $p$ and the closet obstacle, $d_0$ is the region of influence around obstacles, and $k_r$ is a scalar. The resulting force from $V_{ext}$ is
+
+\begin{equation}
+\textbf{F}^{ext}_p = -\nabla V_{ext} = k_r(d_0-d(p))\frac{d}{||d||}
+\end{equation}
+
+where $d$ is the vector between $p$ and the closest point on an obstacle. This repulsive force, $\textbf{F}^{rep}_p$, will modify the existing configurations by pushing them away from obstacles. If the robot is not close to an obstacle, then the repulsive force has no effect.
+
+If an obstacle moves away from the robot after applying a repulsive force, then the robot's path should contract in order to make the path shorter. This is achieved by an internal force generated by virtual springs at each of the robot's control points along a path. This force is meant to bring each configuration closer to its adjacent configurations on a path. The internal force acting at control point $p^i_j$ on the $j$th link at configuration $q_i$ connected to configurations $q_{i-1}$ and $q_{i+1}$ is defined as
+
+\begin{equation}
+\textbf{F}^{int}_{i,j} = k_c\left( \frac{d^{i-1}_j}{d^{i-1}_j+d^i_j} (p^{i+1}_j-p^{i-1}_j)-(p^i_j-p^{i-1}_j) \right)
+\end{equation}
+
+
+%\begin{equation}
+%V_{external}(p) = \left\{ \frac{1}{2}k_r(d_0 - d(p))^2 \text{if d(p) < d_0}
+%\end{equation}
+
+
+There are two scenarios that result in a failure to find a new path. One scenario is when a topological change occurs in the robot's configuration free space. Because the modification method maintains the topological properties of the candidate path, there will not be a successful modification if a topological change occurs.
+
+The second scenario is when a structural local minimum occurs. A structural local minima is when the configuration free space around the candidate path has become so narrow that it cannot be modified enough to avoid an obstacle. Note that this is not a local minima in the workspace of the robot. A separate planner can be employed to move through the narrow passageway.
+
+\subsubsection{Discussion}
+
+The Elastic Strips method was extended to the Elastic Roadmaps method \cite{yang2009elastic} in order to further reduce the necessary C-space information needed. The Elastic Roadmaps method utilizes the OBPRM method to create milestones for a robot's path, and these milestones are labelled as task-consistent, valid, or invalid based on the robot's ability to execute the path in the current environment. This approach has been shown to successfully plan a mobile manipulator with task constraints in the presence of unpredictable moving obstacles. However, it still may suffer issues moving a robot between milestones, or not be able to find a path due to the incompleteness of OBPRM.
+
+Using potential fields as controllers as an approach to generate motion while satisfying other constraints has inspired much work for general robot motion planning. These approaches, combined with the operational space \cite{khatib1987unified}, have been most realized in planning for highly constrained motion planning, such as humanoid models that need to move toward a goal while maintaining balance and posture. These problems, however, do not generally have strict real-time requirements.
+
+\subsection{Real-time Adaptive Motion Planning (RAMP)}
 	
 		
 One of the key difficulties in robot motion planning is planning in high-dimensional state spaces. Sampling-based methods are able to find a path in large state spaces, but they can be far from optimal and re-building roadmaps is expensive for real-time planning. The Real-time Adaptive Motion Planning (RAMP) \cite{RAMP} framework utilizes evolutionary computation for real-time planning and execution of high-DOF robots in dynamic environments.
@@ -445,7 +451,7 @@ One of the key difficulties in robot motion planning is planning in high-dimensi
 
 RAMP is a framework that utilizes evolutionary computation for real-time planning and execution in dynamic environments. Evolutionary computation is a field designed to leverage sophisticated data structures with genetic algorithms to rapidly search through a solution space \cite{michalewicz2013genetic}. They are particularly suited to approximate optimization problems. They are useful for motion planning because an evolutionary computation approach to planning allows us to drastically change a robot's trajectory very quickly and incorporate optimization into our state spaces searches. Using evolutionary computation for path planning was first proposed in \cite{EPN_Adaptive}. 
 
-\subsection{Overview}\label{subseq:RAMP Overview}
+\subsubsection{Overview}\label{subseq:RAMP Overview}
 
 A set of trajectories, called a \emph{population}, is maintained throughout the entire run time. Each trajectory in the population is a chromosome. At each \emph{generation}, 1-2 randomly selected chromosomes are modified via genetic operators. The new chromosome(s) may replace other trajectories in the population. 
 
@@ -453,13 +459,13 @@ A set of trajectories, called a \emph{population}, is maintained throughout the 
 The framework interweaves three separate procedures called planning cycles, control cycles, and sensing cycles. At each planning cycle (or \emph{generation}), the population of trajectories is modified by a genetic operator. Control cycles are procedures that select a trajectory from the population that will be executed by the robot and update the starting motion state of each trajectory in the population. The frequency of control cycles is adaptive based on constraints needed to satisfy in order to switch trajectories. Sensing cycles are procedures that update information about the environment.
 
 
-\subsection{Modification}
+\subsubsection{Modification}
 
 
 The basic modification operators are described in \cite{EPN_Adaptive}. They are \emph{Insert}, \emph{Delete}, \emph{Swap}, \emph{Change}, and \emph{Crossover}. These modification operations are computationally inexpensive so it is possible to perform 100+ within a second. The operators can result in drastic changes to a path. This means that a new feasible path may be found in a very small amount of time, which facilitates real-time path planning that can react to changes in an environment. Modification operators can be added, removed, or replaced based on the application of the robot. For instance, a \emph{Stop} operator was introduced in \cite{RAMP} that stops the base of a mobile manipulator for a random amount of time. This operator promoted decoupling of the base and manipulator, which was desirable to exploit redundancy. 
 
 
-\subsection{Evaluation}
+\subsubsection{Evaluation}
 
 Evolutionary computation utilizes an evaluation function to select the best chromosome from a population. In the RAMP framework, this corresponds to evaluating the population to choose the trajectory for a robot to execute. In RAMP, feasible trajectories are evaluated differently than infeasible trajectories. A trajectory's feasibility is determined by collision with obstacles and if all constraints can be satisfied when switching to the trajectory.
 
@@ -488,12 +494,12 @@ of the first collision in the trajectory, $\Delta\theta$ is the orientation chan
 
 The evaluation for infeasible trajectories should be designed to differentiate which infeasible trajectories are better than others. For instance, the term $P_T$ ensures that trajectories with collision much later in time will be evaluated as better than trajectories with collision occurring very soon.
 
-\subsection{Sensing}
+\subsubsection{Sensing}
 
 Sensing cycles update the latest environment changes for the evaluation function. For dynamic obstacles, simple trajectories are predicted to use for collision detection in CT-space. An obstacle trajectory is predicted by assuming the sensed velocity is constant. Therefore, the predicted trajectory will be either a straight-line or circular arc. These are used for collision detection when evaluating the population. The obstacles may not follow what RAMP predicts, but future changes will be captured in future sensing cycles. Since sensing cycles occur frequently, using simple trajectories is sufficient for navigation, as shown through various experiments.
 
 
-\subsection{Discussion}
+\subsubsection{Discussion}
 
 RAMP excels when planning with high-DOF robots, such as mobile manipulators. A video of results shows several mobile manipulators being planned independently (using each other robot as dynamic obstacles) to work in a task environment.
 
@@ -505,9 +511,27 @@ RAMP has also been applied to continuum manipulator robot models \cite{xiao2010r
 
 \section{Collision Detection}
 	
-	Collision detection is the problem of determining whether one or more objects in a virtual environment are in contact. 
+	Collision detection is the problem of determining whether one or more objects in a virtual environment intersect. Collision detection is the most computationally expensive task in robot motion planning because it has to be performed at each point in a C-space representation to determine whether or not a point lies in $C_{free}$ or $C_{obs}$. This is made even more time consuming by the complexity of the obstacles and the number of obstacles in an environment.
 	
-	Collision detection is the most computationally expensive task in robot motion planning. 
+	Convex polygons are the simplest form of objects to check for collision. There are two main approaches to checking collision between such objects - the GJK algorithm and the Lin-Canny algorithm.
+	
+	The Gilbert-Johnston-Keerthi (GJK) algorithm \cite{gilbert1988fast} is an approach for collision detection between two convex polygons or polyhedra. Let $A$ and $B$ be two nonequal sets of vertices for convex polygons. The GJK algorithm finds a Minkowski sum of the two sets, $C = A - B = \{p_1 - p_2 | p_1 \in A \text{ and } p_2 \in B\}$. If the origin is contained in $C$, then the two objects $A$ and $B$ are in collision.
+	
+	It is often useful to know the distance between two objects, e.g. to maintain a certain distance from obstacles. The GJK algorithm provides a simple method to compute this. Let $C$ be the Minkowski Sum between two convex polygons. Let $q$ denote the closest point in $C$ to the origin. The length of the vector $\vec{\textbf{q}}$ from the origin to $q$ is equal to the distance between the closest pair of points on $A$ and $B$. If the two objects intersect, then the length of $\vec{\textbf{q}}$ is equal to the penetration distance of one object into another.
+	
+	It's important to note that the entire Minkowski Sum does not need to be computed. An alternative is to iteratively build a polygon inside the Minkowski Sum by connecting a subset of its vertices and checking to see if the origin is contained in any polygons built this way. 
+	
+	The Lin-Canny algorithm \cite{lin1991fast} is another approach for collision detection between two convex objects. This approach finds the closest pair of features (vertices, edges, or faces) on two objects, determines if collision exists, and uses past knowledge to speed up future queries. 
+	
+	Given an initial feature pair $(f_a, f_b)$ (chosen randomly or manually specified), the closest points on these features, $(p_a, p_b)$, must be computed. If these points lie in the voroni space of the other object's feature, then $f_a$ and $f_b$ are the two closest features. Otherwise, find a new set of features and repeat the processing of finding and checking the closest points. Once the closest feature pair has been found, if the distance between the features are within some distance threshold, then collision exists.
+	
+	If the objects move as time goes on, motion history can exploited by using the previous closest feature pair each time the Lin-Canny algorithm begins. The closest feature pair is unlikely to change unless the time between collision detection queries is very large. Therefore, using the previous closest pair will drastically reduce the amount of time spent on the query. 
+	
+	These algorithms can be extended to work with concave objects simply by decomposing a concave object into multiple convex objects. However, real-life objects can be extremely complicated, e.g. containing over 1 million triangles. Therefore, many approaches use a bounding volume hierarchy to represent objects.
+	
+	Bounding Volumes (BV) are convex polyhedra	that encompass a set of smaller polyhedra. A hierarchy is formed by placing a BV over an entire object, then sub-dividing the object into smaller regions, and placing BVs over each smaller region. To perform collision detection, a test on the root BV is performed. If there's no collision, the computation stops. Otherwise, collision detection is performed on the BV at the next level of the hierarchy. This process continues until either 1) no collision is found at any level or 2) collision is found at the lowest levels of the hierarchies. The motivating idea behind this is that collision detection queries can be answered extremely quickly when objects are significantly far apart. 
+	
+	Collision Detection is generally separated into two phases: broad phase and narrow phase. The GJK and Lin-Canny algorithms are approaches for the narrow phase. Checking intersection in a BV hierarchy is the broad phase.
 
 
 
