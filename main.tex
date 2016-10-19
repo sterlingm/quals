@@ -513,6 +513,8 @@ RAMP has also been applied to continuum manipulator robot models \cite{xiao2010r
 	
 	Collision detection is the problem of determining whether one or more objects in a virtual environment intersect. Collision detection is the most computationally expensive task in robot motion planning because it has to be performed at each point in a C-space representation to determine whether or not a point lies in $C_{free}$ or $C_{obs}$. This is made even more time consuming by the complexity of the obstacles and the number of obstacles in an environment.
 	
+\subsection{Convex Shapes}
+	
 	Convex polygons are the simplest form of objects to check for collision. There are two main approaches to checking collision between such objects - the GJK algorithm and the Lin-Canny algorithm.
 	
 	The Gilbert-Johnston-Keerthi (GJK) algorithm \cite{gilbert1988fast} is an approach for collision detection between two convex polygons or polyhedra. Let $A$ and $B$ be two nonequal sets of vertices for convex polygons. The GJK algorithm finds a Minkowski sum of the two sets, $C = A - B = \{p_1 - p_2 | p_1 \in A \text{ and } p_2 \in B\}$. If the origin is contained in $C$, then the two objects $A$ and $B$ are in collision.
@@ -529,9 +531,21 @@ RAMP has also been applied to continuum manipulator robot models \cite{xiao2010r
 	
 	These algorithms can be extended to work with concave objects simply by decomposing a concave object into multiple convex objects. However, real-life objects can be extremely complicated, e.g. containing over 1 million triangles. Therefore, many approaches use a bounding volume hierarchy to represent objects.
 	
+\subsection{Complex Objects}
+
 	Bounding Volumes (BV) are convex polyhedra	that encompass a set of smaller polyhedra. A hierarchy is formed by placing a BV over an entire object, then sub-dividing the object into smaller regions, and placing BVs over each smaller region. To perform collision detection, a test on the root BV is performed. If there's no collision, the computation stops. Otherwise, collision detection is performed on the BV at the next level of the hierarchy. This process continues until either 1) no collision is found at any level or 2) collision is found at the lowest levels of the hierarchies. The motivating idea behind this is that collision detection queries can be answered extremely quickly when objects are significantly far apart. 
 	
-	There are several types of Bounding Volumes one can use to approximate a 3D object. Sphere Trees \cite{hubbard1996approximating} use spheres to bound pieces of the objects. Sphere Trees are nice because collision can be detected between two spheres extremely quickly. Object-Oriented-Box (OBB) Trees \cite{gottschalk1996obbtree} is another commonly used representation for hierarchical object approximation where cubes surround pieces of an object and are oriented in the direction of the object's orientation.
+	There are several types of Bounding Volumes one can use to approximate a 3D object. Sphere Trees \cite{hubbard1996approximating} use spheres to bound pieces of the objects. Sphere Trees are nice because collision can be detected between two spheres extremely quickly. Axis Aligned Bounding Boxes (AABB) \cite{edelsbrunner1981intersection} are cubes that surround a shape and the edges of the cube are parallel to the world coordinate system's axes.
+	
+	Object-Oriented-Box (OBB) Trees \cite{gottschalk1996obbtree} is another commonly used representation for hierarchical object approximation that are similar to AABBs, but the edges of the cube are parallel to the object's orientation.
+	 
+	
+\subsection{Discussion}
+
+	Collision Detection has seen significant work for the field of haptics, which requires collision detection queries to be performed at 1KHz, or 0.0001 seconds. While contemporary work is mostly aimed at haptics, motion planning also benefits from such advances in collision detection. Two examples of such work are \cite{otaduy2005sensation} and \cite{barbivc2008six}. 
+	
+	There are still challenges for collision detection in mobile robots as well. Mobile robots tend to follow trajectories that are curves, such as B-splines or clothoids. Even though the curves are only planar, it is still a challenging problem to compute exact collision between such curves in a practical amount of time. Most collision detection queries on higher-order curves are performed as approximations for performance reasons, such as in \cite{morken2009computing}.	
+	
 
 
 
