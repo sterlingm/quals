@@ -391,7 +391,7 @@ Speaking generally, sampling-based approaches work well for solving most robot m
 
 \section{Real-time Motion Planning} \label{sec:real-time}
 
-Real-time Motion Planning is concerned with enabling a robot to react to changes in an environment.
+Real-time Motion Planning is concerned with enabling a robot to react to changes in an environment. These changes are unknown to the robot beforehand and the planning algorithms must enable the robot to adapt to these changes on the fly.
 
 \subsection{Elastic Strips} \label{sec:elastic}
 
@@ -531,13 +531,34 @@ RAMP has also been applied to continuum manipulator robot models \cite{xiao2010r
 	
 	Bounding Volumes (BV) are convex polyhedra	that encompass a set of smaller polyhedra. A hierarchy is formed by placing a BV over an entire object, then sub-dividing the object into smaller regions, and placing BVs over each smaller region. To perform collision detection, a test on the root BV is performed. If there's no collision, the computation stops. Otherwise, collision detection is performed on the BV at the next level of the hierarchy. This process continues until either 1) no collision is found at any level or 2) collision is found at the lowest levels of the hierarchies. The motivating idea behind this is that collision detection queries can be answered extremely quickly when objects are significantly far apart. 
 	
-	Collision Detection is generally separated into two phases: broad phase and narrow phase. The GJK and Lin-Canny algorithms are approaches for the narrow phase. Checking intersection in a BV hierarchy is the broad phase.
+	There are several types of Bounding Volumes one can use to approximate a 3D object. Sphere Trees \cite{hubbard1996approximating} use spheres to bound pieces of the objects. Sphere Trees are nice because collision can be detected between two spheres extremely quickly. Object-Oriented-Box (OBB) Trees \cite{gottschalk1996obbtree} is another commonly used representation for hierarchical object approximation where cubes surround pieces of an object and are oriented in the direction of the object's orientation.
 
 
 
 \section{Conclusions and Open Problems}
     
-    Real-time motion planning still has open problems that stop robots from driving all around in our world. The biggest open problem is constrained motion planning. Robots are subject to many types of constraints: kinematic, dynamic, and task. Each type of constraint will create a manifold in the robot's C-space and a robot's path must lie entirely in that manifold. There have been some approaches to handle constrained motion, but an approach to handle any general constraint is still an open problem. Further, handling these constraints in a dynamic environment is even more difficult. 
+    There are several issues that stop robots from driving all around in our world. One of the biggest open problems in motion planning is constrained motion planning. Robots are subject to many types of constraints: kinematic, dynamic, and task. These constraints are imposed by the robot's physical structure and the task it is trying to complete. Each type of constraint will create a manifold in the robot's state space and a robot's path must lie entirely in that manifold. 
+    
+    %There have been some approaches to handle specific types of constrained motion, but an approach to handle any general constraint is still an open problem. Further, handling these constraints in a dynamic environment is even more difficult. 
+    
+    In particular, a good solution for real-time task constrained motion has yet to exist. Some methods have been presented be done in an offline manner \cite{stilman2007task}\cite{berenson2011task}, but maintaining these constraints while adapting to the changes in a dynamic environment is much more difficult. Currently, the Elastic Roadmaps method is only approach shown to maintain task constraints in dynamic environments, but the video results show uncluttered environments. 
+    
+    Dynamic environments of unknown changes are a tough challenge even without considering task constraints. Frameworks such as RAMP or Elastic Strips have had success in such environments, however, they still have struggles with very cluttered environments. Independent obstacle avoidance methods can fit well with reactive and local planners, but integrating them into global motion planning frameworks can be challenging. RAMP and Elastic Strips have obstacle avoidance methods "built in" to the global path planning approach. 
+    
+    
+    
+    
+    
+    %However, other motion planning Obstacle avoidance methods are generally researched independently of general motion planning frameworks, e.g. applying learning models to more accurately predict future obstacle motion. These
+    
+    %A significant problem is real-time task-constrained motion planning. There have been some approaches to handle task-constrained motion in an offline manner \cite{stilman2007task}\cite{berenson2011task}, but maintaining these constraints while adapting to the changes in a dynamic environment is much more difficult. Currently, the Elastic Roadmaps method is only approach shown to maintain task constraints in dynamic environments, but the video results show uncluttered environments. 
+    
+    %Another open issue is integrating mapping and planning through object recognition. There are many cases where a robot may need to find a goal in an unknown environment. For example, in a disaster zone, a robot may be required to simultaneously map the environment and move towards a goal, e.g. a human trapped under rubble.
+    
+    %Faster exploration of a robot's C-space is always desirable. The latest contribution to that area is the \emph{bur} of free C-space \cite{lacevic2016burs}, which defines a local volume that allows for more exploration using the same distance information used in sampling-based planners.
+    
+
+
 
 
 \bibliography{biblio}
