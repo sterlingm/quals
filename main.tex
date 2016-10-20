@@ -21,8 +21,8 @@
 %\nocite{RAMP}
 
 
-\author{Sterling McLeod}
-\title {Real-time Robot Motion Planning}
+\author{Sterling McLeod\\Department of Computer Science, UNC Charlotte}
+\title {Robot Motion Planning\\PhD Qualifying Exam Written Component}
 \date {2016}
 
 \maketitle
@@ -36,30 +36,30 @@
 	\begin{itemize}
 	\item \emph{Kinematic structure of a robot}
 	
-	Most path-planning algorithms will work in a robot's Configuration Space (Section \ref{sec:C-space}). The number of dimensions in this space scales with the degrees of freedom in a robot's kinematic structure. Mobile bases will only have 2-3 dimensional C-spaces, but manipulators can have up to 7. Humanoid robots can have over 20. Finding a path in such high-dimensional spaces is extremely computationally expensive. 
+	Most path-planning algorithms will operate in a robot's Configuration Space (Section \ref{sec:C-space}). The number of dimensions in this space scales with the degrees of freedom in a robot's kinematic structure. Mobile bases will only have 2-3 dimensional C-spaces, but manipulators can have up to 7. Humanoid robots can have over 20. Finding a path in such high-dimensional spaces is extremely computationally expensive. 
 	
 	\item \emph{Complexity of an environment}
 	
-	Environment complexity is defined by the obstacles existing in it. If all obstacles are static, then the planning will not be too hard. If some or all of the obstacles are dynamic, then the planning is made much more complicated. Some planning algorithms build graphs that assume the obstacle are static. If the obstacles are dynamic, then the algorithms must rebuild a graph representing the state space. Rebuilding this space can be too computationally expensive to execute at real-time. 
+	Environment complexity is defined by the obstacles existing in it. If all obstacles are static, then the planning will not be too difficult. If some or all of the obstacles are dynamic, then the planning is made much more complicated because the representation of an environment created at one time may not be accurate for future times. Some planning algorithms build graphs that assume the obstacle are static. If the obstacles are dynamic, then the algorithms must rebuild a graph representing the state space. Rebuilding this space can be too computationally expensive to execute at real-time. 
 	
-	The dimensionality of an environment is also an important factor. Generally, mobile bases operate in a 2D environment. Manipulators and humanoids, however, operate in a 3D environment. The added dimension brings many more computational costs when performing collision detecton.
+	%The dimensionality of an environment is also an important factor. Generally, mobile bases operate in a 2D environment. Manipulators and humanoids, however, operate in a 3D environment. The added dimension brings many more computational costs when performing collision detecton.
 	
 	\item \emph{Amount of obstacle information}
 	
-	The inherent complexity of dynamic obstacles can be diminished if a planner knows useful information about the obstacles. If we know exactly how an obstacle will move, then a planner can know where it will be in the future and plan accordingly. Partial information about obstacle movement would significantly reduce the planning problem complexity because it allows a system to make assumptions. For instance, in the domain of self-driving cars, an assumption can be made that the surrounding cars will only move forward. This means that a planner does not have to consider the case where an obstacle may move directly at the robot. Other domains, such as warehouse robots, cannot have this assumption applied. In order to have a general planner, one must assume as little as possible about obstacles. The algorithm must be developed to handle lots of various situations.
+	The inherent complexity of dynamic obstacles can be diminished if a planner knows useful information about the obstacles. If we know exactly how an obstacle will move, then a planner can know where it will be in the future and plan accordingly. Even partial information about obstacle movement would significantly reduce the planning problem complexity because it allows a system to make assumptions. For instance, in the domain of self-driving cars, an assumption can be made that the surrounding cars will only move forward. This means that a planner does not have to consider the case where an obstacle may move directly at the robot. Other domains, such as warehouse robots, cannot have this assumption applied. In order to have a general planner, one must assume as little as possible about obstacles and the algorithm must be developed to handle lots of various situations.
 	
 
 	
 	\end{itemize}
 	
-	The path-planning work is normally carried out in a robot's Configuration Space (Section \ref{sec:C-space}) to simplify making connections from one state to another. 
+	%The path-planning work is normally carried out in a robot's Configuration Space (Section \ref{sec:C-space}) to simplify making connections from one state to another. 
 	
-	The earliest works revolve around complete planners operating on a roadmap of the robot's environment. However, building such a roadmap in a 3D environment is extremely computationally expensive. Methods that 
+	The earliest works revolve around complete planners operating on a roadmap of the robot's state space. However, building such a roadmap in a high-dimensional space is extremely computationally expensive. Artificial Potential Fields came about as an attempt to move a robot without computing such roadmaps. However, these methods still require an exact representation of a robot's C-space. Sampling-based algorithms gave roboticists a way to build an approximation of a robot's C-space, which made many high-dimensional planning problems feasible to solve.
 
 	
 \section{Configuration Space}\label{sec:C-space}
 
-A robot's \emph{Configuration Space}, or C-space, is a manifold mapping the set of all transformations that can be applied to a robot to Euclidean space. The dimensionality of this space is determined by the number of degrees of freedom in a robotic system. A robot's \emph{configuration} is a complete specification of the positions of a robot's points. It is typically represented as a vector specifying the values for each of a robot's degrees of freedom. A more intuitive way to think of C-space is as the set of all possible configurations that a robot can have. Each point in the C-space is a vector specifying a transformation of the robot.
+A robot's \emph{Configuration Space}, or C-space, is a manifold mapping the set of all transformations that can be applied to a robot to Euclidean space. The dimensionality of this space is determined by the number of degrees of freedom in a robotic system. A robot's \emph{configuration} is a complete specification of the positions of a robot's points. It is typically represented as a vector specifying the values for each of a robot's degrees of freedom. Each point in the C-space is a vector specifying a transformation of the robot. A more intuitive way to think of C-space is as the set of all possible configurations that a robot can have.
 
 In order to move a robot's end-effector, actuators have to produce rotations or translation around the joints of a robot. This means that any motion of a robot is entirely controlled by the motion of its joints, or the change in configuration. Therefore, robot motion planning is concerned with how to move a robot from an initial configuration to a goal configuration.
     
@@ -89,13 +89,13 @@ A \oplus B = \{(a,b) | a \in A, b \in B\}
 
 where $A$ is the set of robot vertices and $B$ is the set of obstacle vertices. The convex hull of $A \oplus B$ represents the final C-space obstacle region. To picture this algorithm visually, it is the result of sliding the robot along the obstacle's edges at the robot's reference vertex. For that reason, it is often referred to as the \emph{sliding algorithm}. This sliding process was first proposed in \cite{lozano1979algorithm}. The works \cite{lozano1981automatic} and \cite{lozano1983spatial} show how the sliding algorithm can be extended to 3 dimensions and manipulator models. The overall result is the same (obstacles are grown based on the robot size), however, the time to compute the grown obstacles is significantly increased because this algorithm has complexity $O(n+m)$ where $n$ is the number of robot edges and $m$ is the number of obstacle edges.
 
-Path-planning problems run searching algorithms in a robot's C-space. Since motion planning problems need to obtain a trajectory, searching is done in a robot's Configuration-Time Space (CT-space). A robot's CT-space only differs from its C-space by adding a dimension to represent time.
+Path-planning problems usually operate in a robot's C-space. Since motion planning problems need to obtain a trajectory, some algorithms operate in a robot's Configuration-Time Space (CT-space). A robot's CT-space only differs from its C-space by adding a dimension to represent time.
 
 
 \section{Problem Formulation} \label{sec:probform}
 
 
-Suppose a robot $A$ is a rigid-body moving in some world space $W$. Let $Q$ be the Configuration-Time Space of $A$ as defined in the above section. Let $Q_{obs}$ be the obstacle region occupied by obstacle(s) $O$ in $Q$. The free region is defined as $Q_{free} = Q \backslash Q_{obs}$. A motion planning query would require the robot $A$ to move from an initial state, $q_S$, to a goal state, $q_G$. Based on this description, a full robot motion planning problem has the following components:
+Suppose a robot $A$ is a rigid-body moving in some world space $W$. Let $Q$ be the Configuration Space of $A$ as defined in the above section. Let $Q_{obs}$ be the obstacle region occupied by obstacle(s) $O$ in $Q$. The free region is defined as $Q_{free} = Q \backslash Q_{obs}$. A motion planning query would require the robot $A$ to move from an initial state, $q_S$, to a goal state, $q_G$. Based on this description, a full robot motion planning problem has the following components:
 
 \begin{itemize}
 \item $A$: A rigid-body robot
@@ -103,7 +103,7 @@ Suppose a robot $A$ is a rigid-body moving in some world space $W$. Let $Q$ be t
 \item $Q$: The Configuration Space of robot $A$
 \item $O$: A description of obstacles in order to form $Q_{obs}$ and $Q_{free}$.
 \item $q_S$: The initial state of $A$
-\item $q_G$: The goal state
+\item $q_G$: The desired goal state
 \end{itemize}
  
 These components can be grouped into a tuple: $(A, W, Q, O, q_S, q_G)$. 
@@ -119,20 +119,20 @@ This paper focuses on the planning aspect of motion planning because the essence
 
 \section{Combinatorial Methods}
 	
-	Combinatorial motion planning methods are complete planning algorithms that construct a roadmap in a known, continuous space in order to search through for path planning queries. These methods compute the exact configuration space for a robot and its environment in order to construct the roadmap. This class of algorithms works well for simple robotics problems, but does not scale up to many real-world applications seen today. 
+	Combinatorial motion planning methods are complete planning algorithms that construct a roadmap in a known, continuous space in order to search through for path planning queries. These methods compute the exact configuration space for a robot and its environment in order to construct the roadmap. These algorithms work well for simple robotics problems, but does not scale up to many real-world applications seen today. 
 	
 \subsection{Roadmaps}
 	
-	Let $G$ be a graph structure of a topological space that maps to a robot's configuration space, $C_{free}$. The set $S$ is the points reachable in $C_{free}$ by $G$. In order for $G$ to be a roadmap, two conditions must be satisfied:
+	Let $G$ be a graph structure of a topological space that maps to a robot's configuration-free space, $C_{free}$. The set $S$ is the set of points reachable in $C_{free}$ by $G$. In order for $G$ to be a roadmap, two conditions must be satisfied:
 	\begin{enumerate}
 	\item 
-	It is simple to compute a path from any initial node to any goal node in the space represented by $G$.
+	A graph-search algorithm can compute a path from any initial node to any goal node in the space represented by $G$.
 	
 	\item
 	Given initial and goal configurations $q_I$ and $q_G$, respectively, in $C_{free}$, it is possible to connect corresponding nodes $s_1$ and $s_2$ in $S$. More formally, if there exists a path $\tau :[0,1] \rightarrow C_{free}$, such that $\tau (0)=q_I$ and $\tau (1)=q_G$, then there also exists a path $\tau'[0,1] \rightarrow S$, such that $\tau'(0)=s_1$ and $\tau'(1)=s_2$, where $s_1$ and $s_2$ are nodes on the roadmap.
 	\end{enumerate}
 	
-	An extremely important implication of the second condition is that solutions to path-planning queries are not missed due to the roadmap not capturing the connectivity of the configuration space. Essentially, the second condition ensures that algorithms searching on a roadmap can be complete. The first condition makes it always possible to connect an initial and goal configuration to a roadmap. This is essentially because the initial and goal nodes are not connected to the roadmap when it is constructed. They are only connected when beginning a query.
+	An important implication of the second condition is that solutions to path-planning queries are not missed due to the roadmap not capturing the connectivity of the configuration space. Essentially, the second condition ensures that algorithms searching on a roadmap can be complete. The first condition makes it always possible to connect an initial and goal configuration to a roadmap. This is a necessary condition because the initial and goal nodes are not connected to the roadmap when it is constructed. They are only connected when beginning a query.
 	
 \subsection{Cell Decomposition}
 
