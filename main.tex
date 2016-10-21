@@ -173,15 +173,15 @@ A \emph{singular complex} is a generalized version of simplicial complexes that 
 
 \subsubsection{Approaches}
 
-Vertical Cell Decomposition \cite{vert_cell_decomp} partitions the free C-space into triangles and trapezoids. These simple shapes represent the cells of $C_{free}$. 
+Vertical Cell Decomposition partitions the free C-space into triangles and trapezoids. These simple shapes represent the cells of $C_{free}$. 
 
-At each vertex in $C_{obs}$, vertical rays are extended above and below the vertex until another points in $C_{obs}$ is reached. These rays will define edges for the polygonal cells that partition $C_{free}$. The polygons that form $C_{obs}$ can be either convex or concave and the cells in $C_{free}$ will be either triangular or trapezoidal. 
+At each vertex in $C_{obs}$, vertical rays are extended above and below the vertex until another point in $C_{obs}$ is reached. These rays define edges for the polygonal cells that partition $C_{free}$. The polygons that form $C_{obs}$ can be either convex or concave, and the cells in $C_{free}$ will be either triangular or trapezoidal. 
 
 Building a roadmap from the partitioning amounts to choosing sample points from each cell and connecting them to edges of the cell. More formally, a roadmap $G(V,E)$ is defined as follows: For every cell, $C_i$, define an interior point $q_i$. For each vertical edge in $C_i$, define a point $s_i$. Add the points $q_i$ and $s_i$ to $V$. Then, create an edge, $e_i$, between $q_i$ and the sample points on its cell's vertical edges. Add $e_i$ to $E$. The resulting graph is a roadmap that can be used for efficient path planning.
 
-The running time of this algorithm is $O(nlogn)$ when using the \emph{line-sweep} principle. This principle is the idea of a line sweeping across the space and noting where there are interesting points in the space. In this application, the line is vertical and the interesting points are the vertices of obstacles. An \emph{event} is each time the line finds an interesting point. 
+The running time of this algorithm is $O(nlogn)$ when using the \emph{line-sweep} principle. This principle is the idea of a line sweeping across the space and noting where there are interesting points in the space. In this application, the line is vertical and the interesting points are the vertices of obstacles. An \emph{event} occurs each time the line finds an interesting point. 
 
-Triangulation is an alternative to vertical decomposition for polygonal spaces. The cells formed from triangulation will be, discernibly, triangles, whereas the cells formed from vertical decomposition are a mix of triangles and trapezoids. The running time of a naive approach to triangulation is $O(n^3)$. That is far too long, even for some 3D spaces. However, the running time can be reduced to $O(n^2logn)$ with radial sweeping.
+Triangulation is an alternative to vertical decomposition for polygonal spaces. The cells formed from triangulation will be triangles, whereas the cells formed from vertical decomposition are a mix of triangles and trapezoids. The running time of a naive approach to triangulation is $O(n^3)$. That is far too long, even for some 2D spaces. However, the running time can be reduced to $O(n^2logn)$ with radial sweeping.
 
 Cylindrical decomposition is similar to vertical decomposition in that it works by extending rays from all the obstacle vertices, but in the cylindrical method the rays do not stop until they reach the boundary of the C-space. This results in cells that alternate between regions of $C_{free}$ and $C_{obs}$. 
 
@@ -223,9 +223,11 @@ While it is good to understand the theoretical components of these algorithms, i
 
 \section{Artificial Potential Fields}
 
-In an artificial potential field approach \cite{khatib1986real}, a robot is treated like a particle in a gradient field. The goal state emits an attractive force that acts on the robot and the obstacles emit repulsive forces. The combination of these forces results in a vector field that guides the robot from its initial state to the goal state. At each location, a robot's motion is dictated by the magnitude and direction of the gradient vector at the location. This approach integrates high-level path planning with lower-level robot control to achieve both obstacle avoidance and task-consistent motion simultaneously.
+In an artificial potential field approach \cite{khatib1986real}, a robot is treated like a particle in a gradient field. The goal state emits an attractive force that acts on the robot and the obstacles emit repulsive forces. The combination of these forces results in a vector field that guides the robot from its initial state to the goal state. At each location, a robot's motion is dictated by the magnitude and direction of the gradient vector at the location. 
 
-Encountering local minima is the largest problem when using this approach. If a robot is led into an area dominated by repulsive forces, then that area will lead the robot to move in a loop. The most common method of escaping local minima is random walks. When it is detected that the robot has encountered a local minima, a random direction is chosen and the robot is moved in that direction for a variable amount of time. After moving in a random direction, it is hoped that the robot will have escaped the local minima region and can resume moving towards the goal.
+%This approach integrates high-level path planning with lower-level robot control to achieve both obstacle avoidance and task-consistent motion simultaneously.
+
+Encountering local minima is the largest problem when using this approach. If a robot is led into an area dominated by repulsive forces, then that area may cause the robot to move in a loop. The most common method of escaping local minima is random walks. When it is detected that the robot has encountered a local minima, a random direction is chosen and the robot is moved in that direction for a variable amount of time. After moving in a random direction, it is hoped that the robot will have escaped the local minima region and can resume moving towards the goal.
 
 Another issue with using potential fields to move a robot is that the exact C-space must be computed. As discussed before, this is usually infeasible when the C-space is high-dimensional.
 
@@ -237,9 +239,9 @@ Potential fields inspired the Elastic Strips approach described in Section \ref{
 	
 \section{Sampling Based Methods}
 
-Computing the exact configuration space in high dimensions becomes extremely expensive. This makes previous methods, such as potential fields and combinatorial roadmaps, inapplicable to motion planning problems of high dimensions, such as a 6-DOF manipulation problem. Sampling-based methods were introduced in order to handle motion planning problems with such high complexity. Sampling algorithms sacrifice completeness and optimality, but obtain higher performance results. 
+Computing the exact configuration space in high dimensions becomes extremely expensive. This makes previous methods inapplicable to motion planning problems of high dimensions, such as a 6-DOF manipulation problem. Sampling-based methods were introduced in order to handle motion planning problems with such high complexity. Sampling algorithms sacrifice completeness and optimality by using an approximation of the C-space, but are able obtain solutions to high-dimensional problems in feasible amounts of time.
 
-Sampling based methods do not access the C-space directly. An associated collision detection algorithm will test a the robot at a sampled configuration with obstacles in the environment. Based on the result of collision detection, the sampling algorithm knows if a sample is free or obstacle space. After sampling many points, the result is an approximation of the C-space, rather than a complete description. 
+Sampling based methods do not access the C-space directly. An associated collision detection algorithm will test a sampled configuration of the robot against obstacles in the environment. Based on the result of collision detection, the sampling algorithm knows if a sample lies in the free or obstacle portions of the C-space. Connections between samples are made through local planner. After sampling many points, the result is an approximation of the C-space, rather than a complete description. 
 
 Sampling has become the method of choice for most modern robotics applications. A sampling based method was first proposed in 1996 \cite{PRM} that builds a graph representation of the C-space approximation and then uses graph-search techniques to find a final path. A tree-based approach was introduced shortly after that could take kinodynamic constraints into account \cite{RRT}. These two approaches have been extended and iterated upon many times and remain the top approaches in the field.
 
@@ -249,7 +251,7 @@ The basic Probabilistic Roadmaps algorithm \cite{PRM} works in two phases: learn
 
 \subsubsection{Learning Phase}
 
-The goal of the \emph{learning} phase is to build the C-space approximation. An overview of the learning phase is summarized below.
+The goal of the \emph{learning} phase is to build the C-space approximation. An overview of the learning phase is summarized below in Algorithm 1.
 
 \begin{algorithm}
 \caption{PRM Learning Phase}
@@ -274,9 +276,9 @@ The goal of the \emph{learning} phase is to build the C-space approximation. An 
 \end{algorithmic}
 \end{algorithm}
 
-The goal is to build an undirected graph containing $N$ nodes. These nodes correspond the collision-free points in a robot's configuration space. When a point is sampled and determined to be collision-free, a neighborhood of points from the existing graph is found. For each of these neighborhood points, if a local planner can find a collision-free path from the sampled point to the neighborhood points, an edge is formed connecting the nodes.If a sampled node is found to be in collision, the node is thrown away and the algorithm samples again. 
+The goal is to build an undirected graph containing $N$ nodes. These nodes correspond the collision-free points in a robot's configuration space. When a point is sampled and determined to be collision-free, a neighborhood of points from the existing graph is found. For each of these neighborhood points, if a local planner can find a collision-free path from the sampled point to the neighborhood points, an edge is formed connecting the nodes. If a sampled node is found to be in collision, the node is thrown away and the algorithm samples again. 
 
-A local planner is utilized in order to create edges within the graph. Designing a local planner can be difficult, however, because it still needs to plan in a high-dimensional space. Cheap and fast planners are possible since we do not need to consider a global objective. Even if fast local planners are not complete, they are desired over more powerful methods because they allow for more connections to be considered during the learning phase. They allow this because if a local planner is fast, then checking connections between many nodes is fast. Thus, the faster a local planner is, the more connections can be made in a small amount of time. It is desirable to sample as many nodes and make as many connections as possible since more nodes and connections will generally lead to a more accurate C-space approximation. For these reasons, local planners that connect nodes via straight lines are commonly used.
+A local planner is utilized in order to create edges within the graph. Designing a local planner can be difficult, however, because it needs to plan in a high-dimensional space. Cheap and fast planners are possible since there is no need to consider a global objective. Even if fast local planners are not complete, they are desired over more powerful methods because they allow for more connections to be considered during the learning phase. This is true because if a local planner is fast, then checking connections between many nodes is fast. Thus, the faster a local planner is, the more connections can be made in a small amount of time. It is desirable to sample as many nodes and make as many connections as possible since more nodes and connections will generally lead to a more accurate C-space approximation. For these reasons, local planners that connect nodes via straight lines are commonly used.
 
 Determining the neighborhood of a node is based on the value of a distance function between two nodes. The distance function is closely related to the choice of local planner because the distance should be proportional to the chance that the local planner can connect the two nodes with a collision-free path. For straight line local planners, the distance function can be the Euclidean distance between the nodes' positions in the robot's workspace. For more complicated local planners, however, more involved distance functions must be defined.  
 
@@ -284,7 +286,7 @@ Narrow passages are a critical concern during the learning phase. A narrow passa
 
 The PRM method tries to address narrow passages by performing an \emph{expansion} step after constructing the graph, in order to improve the graph's connectivity. To accomplish that, nodes that lie in narrow passages are selected and an attempt to find neighboring points in $C_f$ is made. 
 
-The difficulties in the expansion step is to identify which nodes lie in a narrow passage (those are the nodes that need expansion) and how to find neighboring points.
+The main difficulties in the expansion step are to identify which nodes lie in a narrow passage (those are the nodes that need expansion) and how to find neighboring points.
 
 To find potential expansion nodes, a heuristic needs to be defined that predicts the likelihood of some node $c$ being unconnected. In \cite{PRM}, the following was used:
 
@@ -311,7 +313,7 @@ Dynamic environments are difficult to address with the PRM approach. Constructin
 
 \subsection{Rapidly-Exploring Random Trees}
 
-Rapidly-exploring Random Trees (RRT) is a popular sampling based approach to planning in high dimensional spaces \cite{RRT}. The key difference between RRT and PRM is that RRT uses a tree structure to approximate a robot's C-space, rather than the undirected graph structure used in PRM. This approach leads to several attractive features: it is suitable for handling non-holonomic and kinodynamic constraints, it requires few parameters, and is more apt to handle real-time planning in dynamic environments. RRT was specifically designed for kinodynamic planning (discussed more in Section VI), i.e. it considers both configurations and differential constraints. For this reason, it is also referred to as a randomized kinodynamic planner \cite{lavalle2001randomized}.  
+Rapidly-exploring Random Trees (RRT) is a popular sampling based approach for high dimensional spaces \cite{RRT}. The key difference between RRT and PRM is that RRT uses a tree structure to approximate a robot's C-space, rather than the undirected graph structure used in PRM. This approach leads to several attractive features: it is suitable for handling non-holonomic and kinodynamic constraints, it requires few parameters, and is more apt to handle real-time planning in dynamic environments. RRT was specifically designed for kinodynamic planning (discussed more in Section VI), i.e. it considers both configurations and differential constraints. For this reason, it is also referred to as a randomized kinodynamic planner \cite{lavalle2001randomized}.  
 
 The kinodynamic state space contains both the set of the configurations and the set of possible velocities. A single state would represent the robot's velocity at a particular configuration. Let $Q$ denote the configuration space of a rigid or articulated object in space. Each state $q \in Q$ represents a single configuration of the object. For kinodynamic planning, a state $x \in X$ would be defined as $x=(q,\dot{q})$ and $X$ is the set of all such states. Other types of spaces are viable, however. The state space could include higher-order derivatives or only the configuration $q$. If RRT is considering differential constraints, then the output will be a trajectory as opposed to only a geometric path.
 
@@ -337,7 +339,7 @@ Pseudocode for building an RRT can be seen below:
 \end{algorithmic}
 \end{algorithm}
 
-At each iteration, a new state, $x_{rand}$, is randomly sampled. The parent of $x_{rand}$ will be the vertex on the tree that is nearest to the sample. The control input, $u$, is then selected to move from $x_{near}$ to $x_{rand}$ without moving into any regions occupied by obstacles in the state space. The new state, $x_{new}$ is formed from the nearest neighbor, the control input, and a small time increment. The new node is added as a vertex on the tree and the edge connecting $x_{near}$ to $x_{new}$ by applying $u$ is added to the tree as a new edge. This process repeats until the goal state has been added to the tree. Since every state has only one parent on the RRT, adding the goal state to the tree means that a path has been found. 
+At each iteration, a new state, $x_{rand}$, is randomly sampled. The parent of $x_{rand}$ will be the vertex on the tree that is nearest to the sample. The control input, $u$, is then selected to move from $x_{near}$ to $x_{rand}$ without moving into any regions occupied by obstacles in the state space. The new state, $x_{new}$, is formed from the nearest neighbor, the control input, and a small time increment. The new node is added as a vertex on the tree, and the edge connecting $x_{near}$ to $x_{new}$ by applying $u$ is added to the tree as a new edge. This process repeats until the goal state has been added to the tree. Since every state has a parent on the RRT, adding the goal state to the tree means that a path has been found. 
 
 The RRT approach has several nice properties. Similar to PRM, the RRT algorithm is probabilistically complete. The chance of determining whether or not a path exists increases as times goes on. As previously discussed, RRT is able to consider kinodynamic constraints. This is largely due to using a tree over an undirected graph. Since each state will have only one directed connection, it is easy to ensure that a robot's dynamic constraints will be satisfied as it move from configuration to configuration. Another attractive property is that the tree will always remain connected, even in narrow passages. Graphs constructed with the PRM are not guaranteed to remain connected because the connections are based on a vertex's neighborhood. If there are no existing vertices nearby the new vertex, then the vertex will have no connections, but will still be added to the graph.
 
@@ -370,7 +372,7 @@ The work done in \cite{zhang2008efficient} retracts nodes with a local optimizat
 
 
 
-Using these approaches to find an optimal path was explored in \cite{karaman2011sampling}. Three algorithms, PRM*, RRG, and RRT*, were proposed that extend the standard PRM and RRT algorithms. Analysis in this paper shows that the three algorithms presented are 1) asymptotically optimal, and 2) within a constant factor of the computational complexity of the standard sampling algorithms. 
+Using PRM and RRT to find an optimal path was explored in \cite{karaman2011sampling}. Three algorithms, PRM*, RRG, and RRT*, were proposed that extend the standard PRM and RRT algorithms. Analysis in this paper shows that the three algorithms presented are 1) asymptotically optimal, and 2) within a constant factor of the computational complexity of the standard sampling algorithms. 
 
 The PRM* algorithm is only slightly different from the standard version. In the standard version of PRM, the nearest neighbors for a sample are obtained with a fixed radius of the sample. The PRM* algorithm uses a variable radius that is a function of the number of nodes in the roadmap. Let $n$ denote the number of vertices in the roadmap. The radius function used in PRM* is 
 
@@ -385,7 +387,7 @@ Similar to PRM, the PRM* algorithm is meant to handle multiple-query problems. T
 RRT* modifies RRG by maintaining a tree structure rather than a graph. A subset of edges is considered redundant and removed so that cycles are not formed. These edges are ones that are not part of the shortest path from the root of the tree to a vertex.
 
 
-Speaking generally, sampling-based approaches work well for solving most robot motion planning problems. However, the time it takes to rebuild roadmaps, plan a new path, and recompute a new trajectory can be too expensive to avoid obstacles of unforeseen motion. The RRT approach is the most successful in handling real-time robot motion planning because it is designed to handle single-query problems. Also, the RRT approach extends intuitively to Kinodynamic Planning (Section \ref{sec:kino}) which can significantly speed up the time to compute an entire trajectories (instead of only a path).
+Speaking generally, sampling-based approaches work well for solving most robot motion planning problems. However, the time it takes to rebuild roadmaps, plan a new path, and recompute a new trajectory can be too expensive to avoid obstacles of unforeseen motion. The RRT approach is the most successful in handling real-time robot motion planning because it is designed to handle single-query problems. The RRT approach extends intuitively to Kinodynamic Planning (Section \ref{sec:kino}) which can significantly speed up the time to compute an entire trajectories (instead of only a path).
 
 \input{kinodynamic}
 

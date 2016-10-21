@@ -2,10 +2,10 @@
 
 \section{ Kinodynamic Motion Planning } \label{sec:kino}
 
-Kinodynamic Planning is an approach to robot motion planning that integrates the kinematic and dynamic constraints of a robot into the planning aspect of the solution. In other words, it solves both path-planning and trajectory-following simultaneously. Prior motion planning approaches required these two problems to be done separately. Path-planning would be performed without considering a robot's dynamic constraints, and then a trajectory-following algorithm would interpolate points to move the robot along the path. The tuple describing a general motion planning problem from Section \ref{sec:probform} will contain two new values: $v_{max}$ and $a_{max}$, the maximum velocity and maximum acceleration, respectively, of the robot.
+Kinodynamic Planning is an approach to robot motion planning that integrates the kinematic and dynamic constraints of a robot into the planning aspect of the solution. In other words, it solves both path-planning and trajectory-following simultaneously. Prior motion planning approaches required these two problems to be done separately. Path-planning would be performed without considering a robot's dynamic constraints to produce a geometric path, and then a trajectory-following algorithm would interpolate points to move the robot along the path. When formulating a kinodynamic problem, the tuple describing a general motion planning problem from Section \ref{sec:probform} will contain two new values: $v_{max}$ and $a_{max}$, the maximum velocity and maximum acceleration, respectively, of the robot.
 
 
-Since the goal of planning is usually to find an optimal solution (or the most-optimal available solution), it is possible that a kinodynamic planner may lead to an unsafe trajectory based on the robot's dynamic constraints. Therefore, a safety margin can be used to ensure that a solution maintains a certain distance from obstacles. A safety margin, $\delta$, is defined based on a robot's dynamic constraints. A $\delta_v$-\emph{safe kinodynamic solution} will move a robot from a starting state (position and velocity) to a goal state while avoiding obstacles by a safety margin $\delta_v$. Mathematically, the effect of the safety margin is the following:
+Since an implicit goal of planning is usually to find an optimal solution (or the most-optimal available solution), it is possible that a kinodynamic planner may lead to an unsafe trajectory based on the robot's dynamic constraints. Therefore, a safety margin can be used to ensure that a solution maintains a certain distance from obstacles. A safety margin, $\delta$, is defined based on a robot's dynamic constraints. A $\delta_v$-\emph{safe kinodynamic solution} will move a robot from a starting state (position and velocity) to a goal state while avoiding obstacles by a safety margin $\delta_v$. Mathematically, the effect of the safety margin is the following:
 
 \begin{equation}
 \delta_v(c_0, c_1)(\dot{p}(t)) = c_0 + c_1||\dot{p}(t)||
@@ -13,7 +13,7 @@ Since the goal of planning is usually to find an optimal solution (or the most-o
 
 where $c_0$ and $c_1$ are positive scalar values.
 
-An additional parameter to this problem is $l$, the side length of a cube that bounds all free condigurations. The complete tuple for a kinodynamic planning problem is $(A, W, Q, O, q_S, q_G, l, a_{max}, v_{max})$. The complete tuple for a $\delta_v$-\emph{safe kinodynamic planning} problem is $(A, W, Q, O, q_S, q_G, l, a_{max}, v_{max}, c_0, c_1)$. The values $a_{max}, v_{max}, l, c_0,$ and $c_1$ are \emph{kinodynamic bounds}.
+An additional parameter to this problem is $l$, the side length of a cube that bounds all free configurations. The complete tuple for a kinodynamic planning problem is $(A, W, Q, O, q_S, q_G, l, a_{max}, v_{max})$. The complete tuple for a $\delta_v$-\emph{safe kinodynamic planning} problem is $(A, W, Q, O, q_S, q_G, l, a_{max}, v_{max}, c_0, c_1)$. The values $a_{max}, v_{max}, l, c_0,$ and $c_1$ are \emph{kinodynamic bounds}.
 
 
 The problem was first proposed in \cite{donald1993kinodynamic}, where an approximate solution was presented based on graph-search. The state space for this approach, denoted as $TC$, is the phase space of a robot's C-space. A point in this space represents both the robot's position and velocity, e.g. $S=(s, \dot{s})$. The state space is transformed into a directed graph where the vertices are discretized values from $TC$ and the edges represent trajectory segments.
@@ -62,11 +62,10 @@ The randomized kinodynamic planner based on RRT assumes that an environment is s
 This approach has been shown to work for several systems. For each system, the dynamic model must be defined as well as a distance metric in order to approximate a nearest neighbor for each node. The most complicated system described in experimental results is a three-dimensional spacecraft with a 12-dimensional state space. A bidirectional search method can also be applied to this work as in \cite{kuffner2000rrt}.
 
 % Introduce NOT PRM approach, why needed?, the basics of the approach
-The RRT approach did not consider dynamic obstacles, however. Dynamic obstacles in kinodynamic planning were considered in an PRM approach \cite{hsu2002randomized}. This work plans in the state$\times$time space of a robot by sampling to build an approximation of the search space. A vision module runs simultaneously with the planner to estimate obstacle motion.
+The RRT approach did not consider dynamic obstacles, however. Dynamic obstacles in kinodynamic planning were considered using a PRM approach \cite{hsu2002randomized}. This work plans in the state$\times$time space of a robot by sampling to build an approximation of the search space. A vision module runs simultaneously with the planner to estimate obstacle motion.
 
 % Define search space
-Let $S$ denote the state space of a robot. $S$ can be the Configuration space of a robot, or it can include additional parameters. In the case of a car-like robot, a state $s \in S$ could be $(x,y,\theta)$ or it could also include velocity values, i.e. $(x,y,\theta,\dot{x},\dot{y},\dot{\theta})$. 
-
+Let $S$ denote the state space of a robot, e.g. in the case of a car-like robot a state $s \in S$ would contain $(x,y,\theta,\dot{x},\dot{y},\dot{\theta})$. 
 % Define query
 Let $ST$ denote the state$\times$time space defined as $S\times[0,+\infty)$. Given an initial state$\times$time pair $(s_0, t_0)$ and a goal pair $(s_g, t_g)$, the output of this planner is a function $u:[t_0, t_g] \rightarrow \Omega$ that leads to a collision-free trajectory $\tau: t \in [t_0, t_g] \rightarrow \tau(t) = (s(t),t)$ such that $s(t_0)=s_0$ and $s(t_g)=s_g$.
 
