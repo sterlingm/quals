@@ -393,13 +393,13 @@ Speaking generally, sampling-based approaches work well for solving most robot m
 
 \section{Real-time Motion Planning} \label{sec:real-time}
 
-Real-time Motion Planning is concerned with enabling a robot to react to changes in an environment. These changes are unknown to the robot beforehand and the planning algorithms must enable the robot to adapt to these changes on the fly.
+Real-time Motion Planning is concerned with enabling a robot to react to unforeseen changes in an environment. These changes are unknown to the robot beforehand and the planning algorithms must enable the robot to adapt to these changes on the fly.
 
 \subsection{Elastic Strips} \label{sec:elastic}
 
 Elastic Strips \cite{brock2002elastic} is an approach to real-time motion planning in unstructured dynamic environments that leverages potential fields and a decomposition-based path-planning strategy \cite{brock2001decomposition} to produce motion that allows a robot to avoid obstacles while also moving towards a goal.
 
-An elastic strip is a volume formed by the union of a set of homotopic paths. These paths are slight modifications to a candidate path that satisfies global constraints of a robot's task, such as moving to a goal state. The volume, also called a \emph{tunnel}, is obtained by the decomposition-based strategy in \cite{brock2001decomposition}. The volume is "elastic" because it can be slightly modified by modifying one of the homotopic paths while maintaining topological properties of the candidate path and local constraints such as obstacle avoidance. 
+An elastic strip is a volume formed by the union of a set of homotopic paths. These paths are slight modifications to a candidate path that satisfies global constraints of a robot's task, such as moving to a goal state. The volume, also called a \emph{tunnel}, is obtained by the decomposition-based strategy in \cite{brock2001decomposition}. The volume is "elastic" because it can be slightly modified by modifying one of the homotopic paths while maintaining topological properties of the candidate path and local constraints, such as obstacle avoidance. 
 
 
 \subsubsection{Obstacle Avoidance}
@@ -448,17 +448,17 @@ Using potential fields as controllers as an approach to generate motion while sa
 \subsection{Real-time Adaptive Motion Planning (RAMP)}
 	
 		
-One of the key difficulties in robot motion planning is planning in high-dimensional state spaces. Sampling-based methods are able to find a path in large state spaces, but they can be far from optimal and re-building roadmaps is expensive for real-time planning. The Real-time Adaptive Motion Planning (RAMP) \cite{RAMP} framework utilizes evolutionary computation for real-time planning and execution of high-DOF robots in dynamic environments.
+One of the key difficulties in robot motion planning is planning in high-dimensional state spaces, such as mobile manipulator models, at real-time. Sampling-based methods are able to find a path in large state spaces, but they can be far from optimal and re-building roadmaps can be too expensive for real-time planning. The Real-time Adaptive Motion Planning (RAMP) \cite{RAMP} framework utilizes evolutionary computation for real-time planning and execution of high-DOF robots in dynamic environments.
 
 
-RAMP is a framework that utilizes evolutionary computation for real-time planning and execution in dynamic environments. Evolutionary computation is a field designed to leverage sophisticated data structures with genetic algorithms to rapidly search through a solution space \cite{michalewicz2013genetic}. They are particularly suited to approximate optimization problems. They are useful for motion planning because an evolutionary computation approach to planning allows us to drastically change a robot's trajectory very quickly and incorporate optimization into our state spaces searches. Using evolutionary computation for path planning was first proposed in \cite{EPN_Adaptive}. 
+RAMP is a framework that utilizes evolutionary computation for real-time planning and execution in dynamic environments. Evolutionary computation is a field designed to leverage sophisticated data structures with genetic algorithms to rapidly search through a solution space \cite{michalewicz2013genetic}. They are useful for motion planning because an evolutionary computation approach to planning allows us to drastically change a robot's trajectory very quickly and incorporate optimization into our state spaces searches. Using evolutionary computation for path planning was first proposed in \cite{EPN_Adaptive}. 
 
 \subsubsection{Overview}\label{subseq:RAMP Overview}
 
-A set of trajectories, called a \emph{population}, is maintained throughout the entire run time. Each trajectory in the population is a chromosome. At each \emph{generation}, 1-2 randomly selected chromosomes are modified via genetic operators. The new chromosome(s) may replace other trajectories in the population. 
+A set of trajectories, called a \emph{population}, is maintained throughout the entire run time. Each trajectory in the population is a chromosome. At each \emph{generation}, 1-2 randomly selected chromosomes are modified via modification operators. The new chromosome(s) may replace other trajectories in the population. 
 
 
-The framework interweaves three separate procedures called planning cycles, control cycles, and sensing cycles. At each planning cycle (or \emph{generation}), the population of trajectories is modified by a genetic operator. Control cycles are procedures that select a trajectory from the population that will be executed by the robot and update the starting motion state of each trajectory in the population. The frequency of control cycles is adaptive based on constraints needed to satisfy in order to switch trajectories. Sensing cycles are procedures that update information about the environment.
+The framework interweaves three separate procedures called planning cycles, control cycles, and sensing cycles. At each planning cycle (or \emph{generation}), the population of trajectories is modified by a modification operator. Control cycles are procedures that select a trajectory from the population to be executed by the robot and update the starting motion state of each trajectory in the population. Sensing cycles are procedures that update information about the environment.
 
 
 \subsubsection{Modification}
@@ -469,7 +469,7 @@ The basic modification operators are described in \cite{EPN_Adaptive}. They are 
 
 \subsubsection{Evaluation}
 
-Evolutionary computation utilizes an evaluation function to select the best chromosome from a population. In the RAMP framework, this corresponds to evaluating the population to choose the trajectory for a robot to execute. In RAMP, feasible trajectories are evaluated differently than infeasible trajectories. A trajectory's feasibility is determined by collision with obstacles and if all constraints can be satisfied when switching to the trajectory.
+Evolutionary computation utilizes an evaluation function to select the best chromosome from a population. In the RAMP framework, this corresponds to evaluating the population to choose the best trajectory for a robot to execute. In RAMP, feasible trajectories are evaluated differently than infeasible trajectories. A trajectory's feasibility is determined by collision with obstacles and if all constraints can be satisfied when switching to the trajectory.
 
 A feasible trajectory is evaluated by a weighted, normalized sum based on optimization criteria:
 
@@ -503,7 +503,7 @@ Sensing cycles update the latest environment changes for the evaluation function
 
 \subsubsection{Discussion}
 
-RAMP excels when planning with high-DOF robots, such as mobile manipulators. A video of results shows several mobile manipulators being planned independently (using each other robot as dynamic obstacles) to work in a task environment.
+RAMP excels when planning with high-DOF robots, such as mobile manipulators. A video of results shown in \cite{RAMP} has several mobile manipulators being planned independently (using each other robot as dynamic obstacles) to work in a task environment.
 
 While RAMP was shown in \cite{RAMP} to perform well with mobile manipulators, it only considered mobile bases that were capable of holonomic motion. The framework was extended to work with non-holonomic bases in \cite{mcleod2016real}. This work modified the original RAMP approach by converting holonomic trajectory segments to non-holonomic segments at real-time for the robot to execute. A method to switch trajectories with smooth curves was presented, and the control cycles were made to adapt to the robot's dynamics, rather than being fixed.
 
@@ -523,11 +523,11 @@ RAMP has also been applied to continuum manipulator robot models \cite{xiao2010r
 	
 	It is often useful to know the distance between two objects, e.g. to maintain a certain distance from obstacles. The GJK algorithm provides a simple method to compute this. Let $C$ be the Minkowski Sum between two convex polygons. Let $q$ denote the closest point in $C$ to the origin. The length of the vector $\vec{\textbf{q}}$ from the origin to $q$ is equal to the distance between the closest pair of points on $A$ and $B$. If the two objects intersect, then the length of $\vec{\textbf{q}}$ is equal to the penetration distance of one object into another.
 	
-	It's important to note that the entire Minkowski Sum does not need to be computed. An alternative is to iteratively build a polygon inside the Minkowski Sum by connecting a subset of its vertices and checking to see if the origin is contained in any polygons built this way. 
+	It is important to note that the entire Minkowski Sum does not need to be computed. An alternative is to iteratively build a polygon inside the Minkowski Sum by connecting a subset of its vertices and checking to see if the origin is contained in any polygons built this way. 
 	
 	The Lin-Canny algorithm \cite{lin1991fast} is another approach for collision detection between two convex objects. This approach finds the closest pair of features (vertices, edges, or faces) on two objects, determines if collision exists, and uses past knowledge to speed up future queries. 
 	
-	Given an initial feature pair $(f_a, f_b)$ (chosen randomly or manually specified), the closest points on these features, $(p_a, p_b)$, must be computed. If these points lie in the voroni space of the other object's feature, then $f_a$ and $f_b$ are the two closest features. Otherwise, find a new set of features and repeat the processing of finding and checking the closest points. Once the closest feature pair has been found, if the distance between the features are within some distance threshold, then collision exists.
+	Given an initial feature pair $(f_a, f_b)$ (chosen randomly or manually specified), the closest points on these features, $(p_a, p_b)$, must be computed. If these points lie in the voroni space of the other object's feature, then $f_a$ and $f_b$ are the two closest features. Otherwise, a new set of features is found and the process of finding and checking the closest points repeats. Once the closest feature pair has been found, if the distance between the features are is some distance threshold, then collision exists.
 	
 	If the objects move as time goes on, motion history can exploited by using the previous closest feature pair each time the Lin-Canny algorithm begins. The closest feature pair is unlikely to change unless the time between collision detection queries is very large. Therefore, using the previous closest pair will drastically reduce the amount of time spent on the query. 
 	
@@ -537,14 +537,12 @@ RAMP has also been applied to continuum manipulator robot models \cite{xiao2010r
 
 	Bounding Volumes (BV) are convex polyhedra	that encompass a set of smaller polyhedra. A hierarchy is formed by placing a BV over an entire object, then sub-dividing the object into smaller regions, and placing BVs over each smaller region. To perform collision detection, a test on the root BV is performed. If there's no collision, the computation stops. Otherwise, collision detection is performed on the BV at the next level of the hierarchy. This process continues until either 1) no collision is found at any level or 2) collision is found at the lowest levels of the hierarchies. The motivating idea behind this is that collision detection queries can be answered extremely quickly when objects are significantly far apart. 
 	
-	There are several types of Bounding Volumes one can use to approximate a 3D object. Sphere Trees \cite{hubbard1996approximating} use spheres to bound pieces of the objects. Sphere Trees are nice because collision can be detected between two spheres extremely quickly. Axis Aligned Bounding Boxes (AABB) \cite{edelsbrunner1981intersection} are cubes that surround a shape and the edges of the cube are parallel to the world coordinate system's axes.
-	
-	Object-Oriented-Box (OBB) Trees \cite{gottschalk1996obbtree} is another commonly used representation for hierarchical object approximation that are similar to AABBs, but the edges of the cube are parallel to the object's orientation.
+	There are several types of Bounding Volumes one can use to approximate a 3D object. Sphere Trees \cite{hubbard1996approximating} use spheres to bound pieces of the objects. Sphere Trees are nice because collision can be detected between two spheres extremely quickly. Axis Aligned Bounding Boxes (AABB) \cite{edelsbrunner1981intersection} are cubes that surround a shape and the edges of the cube are parallel to the world coordinate system's axes. Object-Oriented-Box (OBB) Trees \cite{gottschalk1996obbtree} are another commonly used representation for hierarchical object approximation that are similar to AABBs, but the edges of the cube are parallel to the object's orientation.
 	 
 	
 \subsection{Discussion}
 
-	Collision Detection has seen significant work for the field of haptics, which requires collision detection queries to be performed at 1KHz, or 0.0001 seconds. While contemporary work is mostly aimed at haptics, motion planning also benefits from such advances in collision detection. Two examples of such work are \cite{otaduy2005sensation} and \cite{barbivc2008six}. 
+	Collision Detection has seen significant work for the field of haptics, which requires collision detection queries to be performed at 1KHz. While contemporary work is mostly aimed at haptics, motion planning also benefits from such advances in collision detection. Two examples of such work are \cite{otaduy2005sensation} and \cite{barbivc2008six}. 
 	
 	There are still challenges for collision detection in mobile robots as well. Mobile robots tend to follow trajectories that are curves, such as B-splines or clothoids. Even though the curves are only planar, it is still a challenging problem to compute exact collision between such curves in a practical amount of time. Most collision detection queries on higher-order curves are performed as approximations for performance reasons, such as in \cite{morken2009computing}.	
 	
@@ -553,7 +551,7 @@ RAMP has also been applied to continuum manipulator robot models \cite{xiao2010r
 
 \section{Conclusions and Open Problems}
     
-    There are several issues that stop robots from driving all around in our world. One of the biggest open problems in motion planning is constrained motion planning. Robots are subject to many types of constraints: kinematic, dynamic, and task. These constraints are imposed by the robot's physical structure and the task it is trying to complete. Each type of constraint will create a manifold in the robot's state space and a robot's path must lie entirely in that manifold. 
+    There are several issues that stop robots from driving all around in our world. One of the biggest open problems in motion planning is constrained motion planning. Robots are subject to several types of constraints: kinematic, dynamic, and task. These constraints are imposed by the robot's physical structure and the task it is trying to complete. Each type of constraint will create a manifold in the robot's state space and a robot's path must lie entirely in that manifold. 
     
     %There have been some approaches to handle specific types of constrained motion, but an approach to handle any general constraint is still an open problem. Further, handling these constraints in a dynamic environment is even more difficult. 
     
