@@ -54,7 +54,9 @@
 	
 	%The path-planning work is normally carried out in a robot's Configuration Space (Section \ref{sec:C-space}) to simplify making connections from one state to another. 
 	
-	The earliest works revolve around complete planners operating on a roadmap of the robot's state space. However, building such a roadmap in a high-dimensional space is extremely computationally expensive. Artificial Potential Fields came about as an attempt to move a robot without computing such roadmaps. However, these methods still require an exact representation of a robot's C-space. Sampling-based algorithms gave roboticists a way to build an approximation of a robot's C-space, which made many high-dimensional planning problems feasible to solve.
+	The earliest works revolve around complete planners operating on a roadmap of the robot's state space. However, building such a roadmap in a high-dimensional space is extremely computationally expensive. Artificial Potential Fields came about as an attempt to move a robot without computing such roadmaps. However, these methods still require an exact representation of a robot's C-space, and they suffer from local minima. Sampling-based algorithms gave roboticists a way to build an approximation of a robot's C-space, which made many high-dimensional planning problems feasible to solve.
+	
+	This survey will discuss these various approaches to motion planning. First, the Configuration Space of a robot is defined. Then, the problem is formulated in Section \ref{sec:probform}. Combinatorial methods and their shortcomings are described in Section \ref{sec:comb}. Artificial Potential Functions are briefly discussed in Section \ref{sec:potfields} and are discussed more thoroughly when covering Elastic Strips in Section \ref{sec:real-time}. Sampling-based approaches are covered in Section \ref{sec:sampling}, followed by Kinodynamic Planning in Section \ref{sec:kino}. Real-time Motion Planning is discussed in Section \ref{sec:real-time}, which covers the Elastic Strips and RAMP frameworks. A brief overview of Collision Detection in covered in Section \ref{sec:coll}. Section \ref{sec:conclusion} concludes the paper.
 
 	
 \section{Configuration Space}\label{sec:C-space}
@@ -117,7 +119,7 @@ A solution to the problem is a trajectory $\Gamma$ that moves the robot from its
 This paper focuses on the planning aspect of motion planning because the essence of motion planning is in exploring a state space as rapidly as possible. Trajectory-following  is closer to the field of \emph{control} and is performed only after a state space has been searched to form a path.
 
 
-\section{Combinatorial Methods}
+\section{Combinatorial Methods} \label{sec:comb}
 	
 	Combinatorial motion planning methods are complete planning algorithms that construct a roadmap in a known, continuous space in order to search through for path planning queries. These methods compute the exact configuration space for a robot and its environment in order to construct the roadmap. These algorithms work well for simple robotics problems, but does not scale up to many real-world applications seen today. 
 	
@@ -151,7 +153,7 @@ The first condition is the most important. If it is known that the robot can mov
 
 \subsubsection{Complexes}
 
-A \emph{complex} is defined as a collection of cells and their boundaries. The difference between the terms \emph{cell decomposition} and \emph{complex} is that complexes contain additional pieces of information about how cells fit together, whereas cell decompositions only contain the actual cells themselves. Cell decompositions are derived from complexes.
+A \emph{complex} is defined as a collection of cells and their boundaries. The difference between the terms \emph{cell decomposition} and \emph{complex} is that complexes contain additional pieces of information about how cells fit together, whereas cell decompositions only contain the actual cells themselves. 
 
 The type of complex for a space will dictate the cell decomposition method that can be derived for the space. Two types of complexes are described below.
 
@@ -221,7 +223,7 @@ While it is good to understand the theoretical components of these algorithms, i
 
 
 
-\section{Artificial Potential Fields}
+\section{Artificial Potential Fields} \label{sec:potfields}
 
 In an artificial potential field approach \cite{khatib1986real}, a robot is treated like a particle in a gradient field. The goal state emits an attractive force that acts on the robot and the obstacles emit repulsive forces. The combination of these forces results in a vector field that guides the robot from its initial state to the goal state. At each location, a robot's motion is dictated by the magnitude and direction of the gradient vector at the location. 
 
@@ -231,13 +233,10 @@ Encountering local minima is the largest problem when using this approach. If a 
 
 Another issue with using potential fields to move a robot is that the exact C-space must be computed. As discussed before, this is usually infeasible when the C-space is high-dimensional.
 
-Potential fields inspired the Elastic Strips approach described in Section \ref{sec:elastic} that addresses these problems by using a higher-level planner to maintain global path information, and reduce the necessary parts of the C-space that must be computed to use potential field controllers.
-
-
-
+This approach inspired the Elastic Strips approach described in Section \ref{sec:elastic} that addresses these problems by using a higher-level planner to maintain global path information, and reduce the necessary parts of the C-space that must be computed to use potential field controllers.
 
 	
-\section{Sampling Based Methods}
+\section{Sampling Based Methods} \label{sec:sampling}
 
 Computing the exact configuration space in high dimensions becomes extremely expensive. This makes previous methods inapplicable to motion planning problems of high dimensions, such as a 6-DOF manipulation problem. Sampling-based methods were introduced in order to handle motion planning problems with such high complexity. Sampling algorithms sacrifice completeness and optimality by using an approximation of the C-space, but are able obtain solutions to high-dimensional problems in feasible amounts of time.
 
@@ -306,7 +305,7 @@ The first step in this phase is to connect the starting configuration, $s$, and 
 
 \subsubsection{Further Discussion}
 
-The PRM planner is considered \emph{probabilistically} complete. In most cases, it will not explore every point in the C-space. Given enough time, it will explore all points in the C-space and be able to determine if a path does not exist. 
+The PRM planner is considered \emph{probabilistically} complete, meaning that in most cases it will not explore every point in the C-space, but it will explore all points in the C-space given enough time. The likelihood of determining if a path exists is proportional to the time spent in the learning phase. 
 
 Dynamic environments are difficult to address with the PRM approach. Constructing the roadmap can take significant computation time and is only useful for the state of the environment while constructing the roadmap. If any obstacles move, then the roadmap needs to be modified or completely remade based on the new state of the environment.
 
@@ -315,9 +314,9 @@ Dynamic environments are difficult to address with the PRM approach. Constructin
 
 Rapidly-exploring Random Trees (RRT) is a popular sampling based approach for high dimensional spaces \cite{RRT}. The key difference between RRT and PRM is that RRT uses a tree structure to approximate a robot's C-space, rather than the undirected graph structure used in PRM. This approach leads to several attractive features: it is suitable for handling non-holonomic and kinodynamic constraints, it requires few parameters, and is more apt to handle real-time planning in dynamic environments. RRT was specifically designed for kinodynamic planning (discussed more in Section VI), i.e. it considers both configurations and differential constraints. For this reason, it is also referred to as a randomized kinodynamic planner \cite{lavalle2001randomized}.  
 
-The kinodynamic state space contains both the set of the configurations and the set of possible velocities. A single state would represent the robot's velocity at a particular configuration. Let $Q$ denote the configuration space of a rigid or articulated object in space. Each state $q \in Q$ represents a single configuration of the object. For kinodynamic planning, a state $x \in X$ would be defined as $x=(q,\dot{q})$ and $X$ is the set of all such states. Other types of spaces are viable, however. The state space could include higher-order derivatives or only the configuration $q$. If RRT is considering differential constraints, then the output will be a trajectory as opposed to only a geometric path.
+%The kinodynamic state space contains both the set of the configurations and the set of possible velocities. A single state would represent the robot's velocity at a particular configuration. Let $Q$ denote the configuration space of a rigid or articulated object in space. Each state $q \in Q$ represents a single configuration of the object. For kinodynamic planning, a state $x \in X$ would be defined as $x=(q,\dot{q})$ and $X$ is the set of all such states. Other types of spaces are viable, however. The state space could include higher-order derivatives or only the configuration $q$. If RRT is considering differential constraints, then the output will be a trajectory as opposed to only a geometric path.
 
-A state transition function in the form $\dot{x} = f(x,u)$ must be defined to consider kinodynamic constraints. The inputs are a state, $x$, and an input, $u$, and the output is the derivative of the state over time. This function can be integrated in order to find the next state resulting from applying $u$ to $x$. This allows the algorithm to consider dynamics constraints while planning. 
+%A state transition function in the form $\dot{x} = f(x,u)$ must be defined to consider kinodynamic constraints. The inputs are a state, $x$, and an input, $u$, and the output is the derivative of the state over time. This function can be integrated in order to find the next state resulting from applying $u$ to $x$. This allows the algorithm to consider dynamics constraints while planning. 
 
 Pseudocode for building an RRT can be seen below:
 
@@ -354,7 +353,7 @@ Both sampling-based approaches sample stochastically in order to build an approx
 
 For PRM, most of the immediate work following \cite{PRM} focused on the learning phase of PRM to improve its ability to capture narrow passageways in the C-space. This is because narrow passageways are the most significant challenge when using a sampling-based approach. Extensions of the PRM algorithm target one of two aspects: the node generation process or the process of finding a neighborhood of candidate connections. 
 
-Obstacle Based PRM (OBPRM) \cite{amato1998obprm} generates nodes based on obstacle surfaces. Thus, the obstacle information guides the node generation process. It can generate both contact configurations (for manipulation planning) and configurations in free space for general path-planning. Each sampled state is translated towards an obstacle until collision is made, and then the configuration is recorded as $c_{in}$. A random direction is selected to translate $c_{in}$ on until a free configuration, $c_{out}$, is found. The contact configuration between $c_{in}$ and $c_{out}$ can be found through binary search.
+Obstacle Based PRM (OBPRM) \cite{amato1998obprm} generates nodes based on obstacle surfaces. Thus, the obstacle information guides the node generation process. It can generate both contact configurations (for manipulation planning) and configurations in free space for general path-planning. Each sampled state is translated towards an obstacle until collision is made. Then, the robot is rotated randomly (while maintaining collision) and the resulting configuration is recorded as $c_{in}$. A random direction is selected to translate $c_{in}$ on until a free configuration, $c_{out}$, is found. The contact configuration between $c_{in}$ and $c_{out}$ can be found through binary search.
 Medial Axis PRM (MAPRM) \cite{wilmarth1999maprm} proposes a node generation strategy based on the medial axis of a space. Each new sampled state is retracted onto the medial axis of the robot's configuration-free space. The exact medial axis does not need to computed with this approach. Each sampled configuration is moved towards its nearest neighbor on the graph via bisection until there is no unique closest node on the graph. An approach to sampling based on Gaussian distribution was presented in \cite{boor1999gaussian}. This approach assigns probability values to C-space regions based on their distance from C-space obstacles. Higher values are given to areas closer to obstacles. Each iteration of building the graph does the following: a configuration is obtained via uniform sampling, then a distance value $d$ is chosen based on a Gaussian distribution uncertainty, and a second configuration is obtained at distance $d$ from the first sampled configuration, i.e. closer to an obstacle. All of these strategies help the planner deal with narrow passageways by generating nodes in regions close to obstacles, which are the hardest regions to plan in.
 
 A visilibity roadmap approach \cite{nissoux1999visibility} significantly reduces the number of nodes by only keeping nodes that either connect two connected components or are not visible by any "guard" nodes in the roadmap. A node is visible by another node if they can be connected with a straight-line that lies entirely in the free portion of a robot's C-space. Guard nodes are ones that are not visible by other guard nodes. 
@@ -408,11 +407,12 @@ The Elastic Strips framework employs local potential fields to modify trajectori
 
 A path is represented as a discrete set of configurations. Let $P_c$ be the candidate path for a robot. To avoid obstacles, a new candidate path, $P_c'$, must be formed by modifying $P_c$ so that $P_c'$ lies within the elastic tunnel. To modify a path, two work space forces are created from two potential fields and applied to the path's configurations. The two forces are $V_{external}$ and $V_{internal}$. The external force is based on the robot's proximity to obstacles. For a point $p$ on the robot, $V_{ext}$ is defined as
 
-\[ \begin{cases} 
-      \frac{1}{2}k_r(d_0 - d(p))^2 & \text{if}  d(p) < d_0 \\
+\begin{equation}
+V_{ext} = \begin{cases} 
+      \frac{1}{2}k_r(d_0 - d(p))^2 & \text{if }  d(p) < d_0 \\
       0 & \text{otherwise}
    \end{cases}
-\]
+\end{equation}
 
 
 where $d(p)$ is the distance between $p$ and the closet obstacle, $d_0$ is the region of influence around obstacles, and $k_r$ is a scalar. The resulting force from $V_{ext}$ is
@@ -511,7 +511,7 @@ RAMP has also been applied to continuum manipulator robot models \cite{xiao2010r
 
 
 
-\section{Collision Detection}
+\section{Collision Detection} \label{sec:coll}
 	
 	Collision detection is the problem of determining whether one or more objects in a virtual environment intersect. Collision detection is the most computationally expensive task in robot motion planning because it has to be performed at each point in a C-space representation to determine whether or not a point lies in $C_{free}$ or $C_{obs}$. This is made even more time consuming by the complexity of the obstacles and the number of obstacles in an environment.
 	
@@ -521,7 +521,9 @@ RAMP has also been applied to continuum manipulator robot models \cite{xiao2010r
 	
 	The Gilbert-Johnston-Keerthi (GJK) algorithm \cite{gilbert1988fast} is an approach for collision detection between two convex polygons or polyhedra. Let $A$ and $B$ be two nonequal sets of vertices for convex polygons. The GJK algorithm finds a Minkowski sum of the two sets, $C = A - B = \{p_1 - p_2 | p_1 \in A \text{ and } p_2 \in B\}$. If the origin is contained in $C$, then the two objects $A$ and $B$ are in collision.
 	
-	It is often useful to know the distance between two objects, e.g. to maintain a certain distance from obstacles. The GJK algorithm provides a simple method to compute this. Let $C$ be the Minkowski Sum between two convex polygons. Let $q$ denote the closest point in $C$ to the origin. The length of the vector $\vec{\textbf{q}}$ from the origin to $q$ is equal to the distance between the closest pair of points on $A$ and $B$. If the two objects intersect, then the length of $\vec{\textbf{q}}$ is equal to the penetration distance of one object into another.
+	It is often useful to know the distance between two objects, e.g. to maintain a certain distance from obstacles. The GJK algorithm provides a simple method to compute this. Let $C$ be the Minkowski Sum between two convex polygons. Let $q$ denote the closest point in $C$ to the origin. The length of the vector $\vec{\textbf{q}}$ from the origin to $q$ is equal to the distance between the closest pair of points on $A$ and $B$. 
+	
+%If the two objects intersect, then the length of $\vec{\textbf{q}}$ is equal to the penetration distance of one object into another.
 	
 	It is important to note that the entire Minkowski Sum does not need to be computed. An alternative is to iteratively build a polygon inside the Minkowski Sum by connecting a subset of its vertices and checking to see if the origin is contained in any polygons built this way. 
 	
@@ -549,7 +551,7 @@ RAMP has also been applied to continuum manipulator robot models \cite{xiao2010r
 
 
 
-\section{Conclusions and Open Problems}
+\section{Conclusions and Open Problems} \label{sec:conclusion}
     
     There are several issues that stop robots from driving all around in our world. One of the biggest open problems in motion planning is constrained motion planning. Robots are subject to several types of constraints: kinematic, dynamic, and task. These constraints are imposed by the robot's physical structure and the task it is trying to complete. Each type of constraint will create a manifold in the robot's state space and a robot's path must lie entirely in that manifold. 
     
