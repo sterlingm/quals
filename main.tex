@@ -392,7 +392,22 @@ Speaking generally, sampling-based approaches work well for solving most robot m
 
 \section{Real-time Motion Planning} \label{sec:real-time}
 
-Real-time Motion Planning is concerned with enabling a robot to react to unforeseen changes in an environment. These changes are unknown to the robot beforehand and the planning algorithms must enable the robot to adapt to these changes on the fly.
+Real-time Motion Planning is concerned with enabling a robot to react to unforeseen changes in an environment. These changes are unknown to the robot beforehand and the planning algorithms must enable the robot to adapt to these changes on the fly. Real-time planners can be categorized by the way that they deal with changes in the environment, or how they update a robot's motion when an initial path cannot be followed.
+
+
+\subsection{D* Re-planning} \label{sec:dstar}
+
+D* \cite{stentz1994optimal} is an iterative graph-search alogrithm that incorporates dynamic edge costs into the planning in order to update a robot's path at real-time. Similar to A* search, it is an optimal and complete algorithm. As the robot moves on the optimal path towards the goal, sensing may find that something obstructs the path so much so that the robot cannot continue on the path. When this happens, D* updates the associated nodes and propagates necessary changes to the node's neighbors.
+
+The algorithm plans from the goal node to the start node. It maintains a sorted list like other graph-search algorithms that contains nodes to expand called the OPEN list. Initially, no nodes in the graph have any costs. The goal node is pushed onto the OPEN list with a cost of 0. As nodes are expanded, the cost of its neighbors are computed before they are entered into the OPEN list. Once the start node is expanded, the shortest path is computed and given to the robot to follow.
+
+A robot may not be able to follow the initial path found by D* for numerous reasons, such as a door being closed, an obstacle obstructing the path, etc. In this case, D* will update the point in the path that the robot cannot reach, also update the point's neighbors, and re-compute a path to the goal. Generally, the node that the robot cannot reach is set to be obstacle space so it's path cost is dramatically increased. Then, the neighboring nodes are updated by changing the transition costs of these nodes, and they are inserted into the OPEN list. If one of the neighbors is popped off the OPEN list, the actual cost of the node is computed, and then the node is re-inserted into the OPEN list with the cost that includes the updates based on the environment changes. After this propagation of cost changes has been completed, a new path from the robot's current node to the goal node is computed and passed to the robot to follow.
+
+The process of modifying costs at real-time and re-computing a path is faster than applying A* (or other graph-search algorithm) from scratch. This re-planning approach was initially proposed for moving a robot in a partially known environment. It was extended to work in the prescense of moving obstacles in \cite{stentz1995focussed}. The approach inspired a similar re-planning algorithm called D*-lite \cite{koenig2005fast} that generated behavior as if it were D*, but the algorithm itself is simpler. 
+
+Some issues with this approach are that 1) it's unclear what the robot should do while re-planning, 2) D* has only been shown to work with mobile bases, and 3) the discretization of the environment can siginficantly affect the performance of this approach. For the first issue, if the robot is meant to stop and not move while re-planning, then it is very vulnerable to collision while stopped. The second issue implies that this approaco may not work for manipulators because it can take too long to re-plan. Since a manipulator's C-space is often high-dimensional, this approach may not be able to re-plan quickly enough to avoid obstacles at real-time. The third issue warrants a discussion on the trade-off between accuracy and efficiency since a more fine grid will take a longer time to plan on. 
+
+
 
 \subsection{Elastic Strips} \label{sec:elastic}
 
@@ -529,7 +544,7 @@ RAMP has also been applied to continuum manipulator robot models \cite{xiao2010r
 	
 	The Lin-Canny algorithm \cite{lin1991fast} is another approach for collision detection between two convex objects. This approach finds the closest pair of features (vertices, edges, or faces) on two objects, determines if collision exists, and uses past knowledge to speed up future queries. 
 	
-	Given an initial feature pair $(f_a, f_b)$ (chosen randomly or manually specified), the closest points on these features, $(p_a, p_b)$, must be computed. If these points lie in the voroni space of the other object's feature, then $f_a$ and $f_b$ are the two closest features. Otherwise, a new set of features is found and the process of finding and checking the closest points repeats. Once the closest feature pair has been found, if the distance between the features are is some distance threshold, then collision exists.
+	Given an initial feature pair $(f_a, f_b)$ (chosen randomly or manually specified), the closest points on these features, $(p_a, p_b)$, must be computed. If these points lie in the voroni space of the other object's feature, then $f_a$ and $f_b$ are the two closest features. Otherwise, a new set of features is found and the process of finding and checking the closest points repeats. Once the closest feature pair has been found, if the distance between the features is less than some distance threshold, then collision exists.
 	
 	If the objects move as time goes on, motion history can exploited by using the previous closest feature pair each time the Lin-Canny algorithm begins. The closest feature pair is unlikely to change unless the time between collision detection queries is very large. Therefore, using the previous closest pair will drastically reduce the amount of time spent on the query. 
 	
@@ -539,7 +554,7 @@ RAMP has also been applied to continuum manipulator robot models \cite{xiao2010r
 
 	Bounding Volumes (BV) are convex polyhedra	that encompass a set of smaller polyhedra. A hierarchy is formed by placing a BV over an entire object, then sub-dividing the object into smaller regions, and placing BVs over each smaller region. To perform collision detection, a test on the root BV is performed. If there's no collision, the computation stops. Otherwise, collision detection is performed on the BV at the next level of the hierarchy. This process continues until either 1) no collision is found at any level or 2) collision is found at the lowest levels of the hierarchies. The motivating idea behind this is that collision detection queries can be answered extremely quickly when objects are significantly far apart. 
 	
-	There are several types of Bounding Volumes one can use to approximate a 3D object. Sphere Trees \cite{hubbard1996approximating} use spheres to bound pieces of the objects. Sphere Trees are nice because collision can be detected between two spheres extremely quickly. Axis Aligned Bounding Boxes (AABB) \cite{edelsbrunner1981intersection} are cubes that surround a shape and the edges of the cube are parallel to the world coordinate system's axes. Object-Oriented-Box (OBB) Trees \cite{gottschalk1996obbtree} are another commonly used representation for hierarchical object approximation that are similar to AABBs, but the edges of the cube are parallel to the object's orientation.
+	There are several types of Bounding Volumes one can use to approximate a 3D object. Sphere Trees \cite{hubbard1996approximating} use spheres to bound pieces of the objects. Sphere Trees are nice because collision can be detected between two spheres extremely quickly. Axis Aligned Bounding Boxes (AABB) \cite{edelsbrunner1981intersection} are cubes that surround a shape and the edges of the cube are parallel to the world coordinate system's axes. Oriented-Bounding-Box (OBB) Trees \cite{gottschalk1996obbtree} are another commonly used representation for hierarchical object approximation that are similar to AABBs, but the edges of the cube are parallel to the object's orientation.
 	 
 	
 \subsection{Discussion}
@@ -551,15 +566,14 @@ RAMP has also been applied to continuum manipulator robot models \cite{xiao2010r
 
 
 
-\section{Conclusions and Open Problems} \label{sec:conclusion}
+\section{Conclusions} \label{sec:conclusion}
     
-    There are several issues that stop robots from driving all around in our world. One of the biggest open problems in motion planning is constrained motion planning. Robots are subject to several types of constraints: kinematic, dynamic, and task. These constraints are imposed by the robot's physical structure and the task it is trying to complete. Each type of constraint will create a manifold in the robot's state space and a robot's path must lie entirely in that manifold. 
+    One of the biggest open problems in motion planning is the integration of sensing uncertainty into motion planning algorithms. Currently, a great deal of motion planning research assumes that good sensing is available to a robot and that changes in the environment can be found quickly and accurately. However, this is often not the case. All sensors contain a significant deal of uncertainty, and can take significant time to process. These issues can be detrimental to a robot if not accounted for. 
+    
     
     %There have been some approaches to handle specific types of constrained motion, but an approach to handle any general constraint is still an open problem. Further, handling these constraints in a dynamic environment is even more difficult. 
     
-    In particular, a good solution for real-time task constrained motion has yet to exist. Some methods have been presented be done in an offline manner \cite{stilman2007task}\cite{berenson2011task}, but maintaining these constraints while adapting to the changes in a dynamic environment is much more difficult. Currently, the Elastic Roadmaps method is only approach shown to maintain task constraints in dynamic environments, but the video results show uncluttered environments. 
-    
-    Dynamic environments of unknown changes are a tough challenge even without considering task constraints. Frameworks such as RAMP or Elastic Strips have had success in such environments, however, they still have struggles with very cluttered environments. Independent obstacle avoidance methods can fit well with reactive and local planners, but integrating them into global motion planning frameworks can be challenging. RAMP and Elastic Strips have obstacle avoidance methods "built in" to the global path planning approach. 
+   % Dynamic environments of unknown changes are a tough challenge even without considering task constraints. Frameworks such as RAMP or Elastic Strips have had success in such environments, however, they still have struggles with very cluttered environments. Independent obstacle avoidance methods can fit well with reactive and local planners, but integrating them into global motion planning frameworks can be challenging. RAMP and Elastic Strips have obstacle avoidance methods "built in" to the global path planning approach. 
     
     
     
