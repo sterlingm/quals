@@ -2,7 +2,9 @@
 
 \section{ Kinodynamic Motion Planning } \label{sec:kino}
 
-Kinodynamic Planning is an approach to robot motion planning that integrates the kinematic and dynamic constraints of a robot into the planning aspect of the solution. In other words, it solves both path-planning and trajectory-following simultaneously. Prior motion planning approaches required these two problems to be done separately. Path-planning would be performed without considering a robot's dynamic constraints to produce a geometric path, and then a trajectory-following algorithm would interpolate points to move the robot along the path. When formulating a kinodynamic problem, the tuple describing a general motion planning problem from Section \ref{sec:probform} will contain two new values: $v_{max}$ and $a_{max}$, the maximum velocity and maximum acceleration, respectively, of the robot.
+Kinodynamic Planning is an approach to robot motion planning that integrates the kinematic and dynamic constraints of a robot into the planning aspect of the solution. In other words, it solves both path-planning and trajectory-following simultaneously. Prior motion planning approaches required these two problems to be done separately. Path-planning would be performed without considering a robot's dynamic constraints to produce a geometric path, and then a trajectory-following algorithm would interpolate points to move the robot along the path. 
+
+%When formulating a kinodynamic problem, the tuple describing a general motion planning problem from Section \ref{sec:probform} will contain two new values: $v_{max}$ and $a_{max}$, the maximum velocity and maximum acceleration, respectively, of the robot.
 
 
 Since an implicit goal of planning is usually to find an optimal solution (or the most-optimal available solution), it is possible that a kinodynamic planner may lead to an unsafe trajectory based on the robot's dynamic constraints. Therefore, a safety margin can be used to ensure that a solution maintains a certain distance from obstacles. A safety margin, $\delta$, is defined based on a robot's dynamic constraints. A $\delta_v$-\emph{safe kinodynamic solution} will move a robot from a starting state (position and velocity) to a goal state while avoiding obstacles by a safety margin $\delta_v$. Mathematically, the effect of the safety margin is the following:
@@ -13,7 +15,9 @@ Since an implicit goal of planning is usually to find an optimal solution (or th
 
 where $c_0$ and $c_1$ are positive scalar values.
 
-An additional parameter to this problem is $l$, the side length of a cube that bounds all free configurations. The complete tuple for a kinodynamic planning problem is $(A, W, Q, O, q_S, q_G, l, a_{max}, v_{max})$. The complete tuple for a $\delta_v$-\emph{safe kinodynamic planning} problem is $(A, W, Q, O, q_S, q_G, l, a_{max}, v_{max}, c_0, c_1)$. The values $a_{max}, v_{max}, l, c_0,$ and $c_1$ are \emph{kinodynamic bounds}.
+Additional parameters to this problem are $l$, the side length of a cube that bounds all free configurations, $a_{max}$, the maximum acceleration, and $v_{max}$, the maximum speed.
+
+%The complete tuple for a kinodynamic planning problem is $(A, W, Q, O, q_S, q_G, l, a_{max}, v_{max})$. The complete tuple for a $\delta_v$-\emph{safe kinodynamic planning} problem is $(A, W, Q, O, q_S, q_G, l, a_{max}, v_{max}, c_0, c_1)$. The values $a_{max}, v_{max}, l, c_0,$ and $c_1$ are \emph{kinodynamic bounds}.
 
 
 The problem was first proposed in \cite{donald1993kinodynamic}, where an approximate solution was presented based on graph-search. The state space for this approach, denoted as $TC$, is the phase space of a robot's C-space. A point in this space represents both the robot's position and velocity, e.g. $S=(s, \dot{s})$. The state space is transformed into a directed graph where the vertices are discretized values from $TC$ and the edges represent trajectory segments.
