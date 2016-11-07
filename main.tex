@@ -31,12 +31,12 @@
 
 \section{Introduction}
 
-	Robot Motion Planning is the problem of moving a robot from an initial state to a goal state in an environment that may contain obstacles. States can be planar positions, or they can be high-dimensional configurations. They can also include dynamic information, such as a specific velocity and/or acceleration.	Motion planning is required in almost every robotics tasks that exists. Unfortunately, this problem is made difficult by several aspects: 
+	Robot Motion Planning is the problem of moving a robot from an initial state to a goal state in an environment that may contain obstacles. States can be planar positions or high-dimensional configurations. They can also include dynamic information, such as a specific velocity and/or acceleration.	Motion planning is required in almost every robotics task that exists. Unfortunately, several aspects of this problem make it difficult: 
 	
 	\begin{itemize}
 	\item \emph{Kinematic structure of a robot}
 	
-	Most path-planning algorithms will operate in a robot's Configuration Space (Section \ref{sec:C-space}). The number of dimensions in this space scales with the degrees of freedom in a robot's kinematic structure. Mobile bases will only have 2-3 dimensional C-spaces, but manipulators can have up to 7. Humanoid robots can have over 20. Finding a path in such high-dimensional spaces is extremely computationally expensive. 
+	Most path-planning algorithms operate in a robot's Configuration Space (Section \ref{sec:C-space}). The number of dimensions in this space scales with the degrees of freedom in a robot's kinematic structure. Mobile bases will typically only have 2-3 dimensional C-spaces, but manipulators can have up to 7. Humanoid robots can have over 20. Finding a path in such high-dimensional spaces is extremely computationally expensive. 
 	
 	\item \emph{Complexity of an environment}
 	
@@ -54,7 +54,7 @@
 	
 	%The path-planning work is normally carried out in a robot's Configuration Space (Section \ref{sec:C-space}) to simplify making connections from one state to another. 
 	
-	The earliest works revolve around complete planners operating on a roadmap of the robot's state space. However, building such a roadmap in a high-dimensional space is extremely computationally expensive. Artificial Potential Fields came about as an attempt to move a robot without computing such roadmaps. However, these methods still require an exact representation of a robot's C-space, and they suffer from local minima. Sampling-based algorithms gave roboticists a way to build an approximation of a robot's C-space, which made many high-dimensional planning problems feasible to solve.
+	The earliest works revolve around complete planners operating on a roadmap of the robot's state space. However, building such a roadmap in a high-dimensional space is too  computationally expensive for real-time planning. Artificial Potential Fields came about as an attempt to move a robot without computing such roadmaps. However, these methods still require an exact representation of a robot's C-space, and they suffer from local minima. Sampling-based algorithms gave roboticists a way to build an approximation of a robot's C-space suitable for planning, which made many high-dimensional planning problems feasible to solve.
 	
 	This survey will discuss these various approaches to motion planning. First, the Configuration Space of a robot is defined. Then, the problem is formulated in Section \ref{sec:probform}. Combinatorial methods and their shortcomings are described in Section \ref{sec:comb}. Artificial Potential Functions are briefly discussed in Section \ref{sec:potfields} and are discussed more thoroughly when covering Elastic Strips in Section \ref{sec:real-time}. Sampling-based approaches are covered in Section \ref{sec:sampling}, followed by Kinodynamic Planning in Section \ref{sec:kino}. Real-time Motion Planning is discussed in Section \ref{sec:real-time}, which covers the Elastic Strips and RAMP frameworks. A brief overview of Collision Detection in covered in Section \ref{sec:coll}. Section \ref{sec:conclusion} concludes the paper.
 
@@ -65,7 +65,7 @@ A robot's \emph{Configuration Space}, or C-space, is a manifold mapping the set 
 
 In order to move a robot's end-effector, actuators have to produce rotations or translation around the joints of a robot. This means that any motion of a robot is entirely controlled by the motion of its joints, or the change in configuration. Therefore, robot motion planning is concerned with how to move a robot from an initial configuration to a goal configuration.
     
-    To define the C-space for a robot more formally, both the range and type of motion of the robot must be considered. If a robot is a rigid-body object translating in a plane, then its transformation can be expressed in terms of $x$ and $y$. This yields a manifold $M=\mathbb{R}^2$. If rotations can be applied to the robot, then another dimension must be added to the C-space manifold. Let $\theta=[0, 2\pi]$ be the range of rotation for the robot. The C-space manifold for a rigid body robot that can translate along $x$ and  $y$ and rotate $[0, 2\pi]$ in a plane becomes $M=\mathbb{R}^2 \times \mathbb{S}^1$.
+    To define the C-space for a robot more formally, both the range and type of motion of the robot must be considered. If a robot is a rigid-body object translating in a plane, then its transformation can be expressed in terms of $x$ and $y$. This yields a manifold $C=\mathbb{R}^2$. If rotations can be applied to the robot, then another dimension must be added to the C-space. Let $\theta=[0, 2\pi]$ be the range of rotation for the robot. The C-space for a rigid body robot that can translate along $x$ and $y$ and rotate $[0, 2\pi]$ in a plane becomes $C=\mathbb{R}^2 \times \mathbb{S}^1$.
     
     For rigid bodies moving in a 3D space, the C-space becomes more complicated. Generally, objects in a 3D space can translate in three dimensions and can rotate about three axes independently. This set of transformations is characterized by a position vector, $p$, and a rotation matrix, $R$, relative to a fixed frame. The resulting C-space will be six-dimensional: $C=\mathbb{R}^3 \times \mathbb{R}\mathbb{P}^3$. 
     
@@ -89,7 +89,7 @@ In order to solve a motion planning problem, $C_{obs}$ must be computed or appro
 A \oplus B = \{(a,b) | a \in A, b \in B\}
 \end{equation}
 
-where $A$ is the set of robot vertices and $B$ is the set of obstacle vertices. The convex hull of $A \oplus B$ represents the final C-space obstacle region. To picture this algorithm visually, it is the result of sliding the robot along the obstacle's edges at the robot's reference vertex. For that reason, it is often referred to as the \emph{sliding algorithm}. This sliding process was first proposed in \cite{lozano1979algorithm}. The works \cite{lozano1981automatic} and \cite{lozano1983spatial} show how the sliding algorithm can be extended to 3 dimensions and manipulator models. The overall result is the same (obstacles are grown based on the robot size), however, the time to compute the grown obstacles is significantly increased because this algorithm has complexity $O(n+m)$ where $n$ is the number of robot edges and $m$ is the number of obstacle edges.
+where $A$ is the set of robot vertices and $B$ is the set of obstacle vertices. The convex hull of $A \oplus B$ represents the final C-space obstacle region. To picture this algorithm visually, it is the result of sliding the robot along the obstacle's edges at the robot's reference vertex. This sliding process was first proposed in \cite{lozano1979algorithm}. The works \cite{lozano1981automatic} and \cite{lozano1983spatial} show how the sliding algorithm can be extended to 3 dimensions and manipulator models. The overall result is the same (obstacles are grown based on the robot size), however, the time to compute the grown obstacles is significantly increased because this algorithm has complexity $O(n+m)$ where $n$ is the number of robot edges and $m$ is the number of obstacle edges. For a robot that can also rotate in the plane, only considering translations is not enough - this process must also include rotations of the robot. For an articulated body robot, i.e. manipulator, this process must be repeated for each link on the robot. Thus, computing the full C-space scales with the number of dimensions in a robot's C-space.
 
 Path-planning problems usually operate in a robot's C-space. Since motion planning problems need to obtain a trajectory, some algorithms operate in a robot's Configuration-Time Space (CT-space). A robot's CT-space only differs from its C-space by adding a dimension to represent time.
 
@@ -116,12 +116,14 @@ These components can be grouped into a tuple: $(A, W, Q, O, q_S, q_G)$.
 
 A solution to the problem is a trajectory $\Gamma$ that moves the robot from its initial state to the goal state while avoiding obstacles. Knot points for the trajectory can be generated by a path-planning algorithm that outputs a path $\rho[0,1] \rightarrow Q_{free}$ such that $\rho(0) = q_S$ and $\rho(1) = q_G$. Or, the trajectory can be generated while a path is being generated, which is known as \emph{Kinodynamic Planning} and will be covered in Section \ref{sec:kino}.
 
-This paper focuses on the planning aspect of motion planning because the essence of motion planning is in exploring a state space as rapidly as possible. Trajectory-following  is closer to the field of \emph{control} and is performed only after a state space has been searched to form a path.
+This paper focuses on the path planning aspect of motion planning because the essence of motion planning is in exploring a state space as rapidly as possible. Trajectory-following  is closer to the field of \emph{control} and is performed only after a state space has been searched to form a path.
+
+It's important to note that all of the information needed to solve a motion planning problem may not be
 
 
 \section{Combinatorial Methods} \label{sec:comb}
 	
-	Combinatorial motion planning methods are complete planning algorithms that construct a roadmap in a known, continuous space in order to search through for path planning queries. These methods compute the exact configuration space for a robot and its environment in order to construct the roadmap. These algorithms work well for simple robotics problems, but does not scale up to many real-world applications seen today. 
+	Combinatorial motion planning methods are complete planning algorithms that construct a roadmap in a known continuous space to search through for path planning queries. These methods compute the exact configuration space for a robot and its environment to construct the roadmap. These algorithms work well for simple robotics problems, but do not scale up to many real-world applications seen today. 
 	
 \subsection{Roadmaps}
 	
@@ -175,21 +177,21 @@ A \emph{singular complex} is a generalized version of simplicial complexes that 
 
 \subsubsection{Approaches}
 
-Vertical Cell Decomposition partitions the free C-space into triangles and trapezoids. These simple shapes represent the cells of $C_{free}$. 
+Vertical Cell Decomposition partitions the free C-space into rectangles, triangles and trapezoids. These simple shapes represent the cells of $C_{free}$. 
 
 At each vertex in $C_{obs}$, vertical rays are extended above and below the vertex until another point in $C_{obs}$ is reached. These rays define edges for the polygonal cells that partition $C_{free}$. The polygons that form $C_{obs}$ can be either convex or concave, and the cells in $C_{free}$ will be either triangular or trapezoidal. 
 
-Building a roadmap from the partitioning amounts to choosing sample points from each cell and connecting them to edges of the cell. More formally, a roadmap $G(V,E)$ is defined as follows: For every cell, $C_i$, define an interior point $q_i$. For each vertical edge in $C_i$, define a point $s_i$. Add the points $q_i$ and $s_i$ to $V$. Then, create an edge, $e_i$, between $q_i$ and the sample points on its cell's vertical edges. Add $e_i$ to $E$. The resulting graph is a roadmap that can be used for efficient path planning.
+Building a roadmap from the partitioning amounts to choosing sample points from each cell and connecting them to edges of the cell. More formally, a roadmap $G(V,E)$ is defined as follows: For every cell, $C_i$, define an interior point $q_i$. For each vertical edge in $C_i$, define a point $s_i$. Add the points $q_i$ and $s_i$ to $V$. Then, create an edge, $e_i$, between $q_i$ and the sample points on its cell's vertical edges and add $e_i$ to $E$. The resulting graph is a roadmap that can be used for efficient path planning.
 
 The running time of this algorithm is $O(nlogn)$ when using the \emph{line-sweep} principle. This principle is the idea of a line sweeping across the space and noting where there are interesting points in the space. In this application, the line is vertical and the interesting points are the vertices of obstacles. An \emph{event} occurs each time the line finds an interesting point. 
 
-Triangulation is an alternative to vertical decomposition for polygonal spaces. The cells formed from triangulation will be triangles, whereas the cells formed from vertical decomposition are a mix of triangles and trapezoids. The running time of a naive approach to triangulation is $O(n^3)$. That is far too long, even for some 2D spaces. However, the running time can be reduced to $O(n^2logn)$ with radial sweeping.
+Triangulation is an alternative to vertical decomposition for polygonal spaces. The cells formed from triangulation will be triangles. The running time of a naive approach to triangulation is $O(n^3)$. That is far too long, even for some 2D spaces. However, the running time can be reduced to $O(n^2logn)$ with radial sweeping.
 
 Cylindrical decomposition is similar to vertical decomposition in that it works by extending rays from all the obstacle vertices, but in the cylindrical method the rays do not stop until they reach the boundary of the C-space. This results in cells that alternate between regions of $C_{free}$ and $C_{obs}$. 
 
 \subsubsection{3D Decomposition}
 
-Cell decomposition in 3 (or more) dimensions is desirable since most motion planning problems have a C-space of more than 2 dimensions. The methods discussed previously work well for 2D, but only cylindrical decomposition generalizes well to higher dimensions. Vertical decomposition can be recursively applied to $k$-cells of higher dimensions, but it only succeeds if $C_{obs}$ is represented as a semi-algebraic model with linear primitives. That format for $C_{obs}$ is rare for a configuration space since many high-DOF robot models contain revolute joints.
+Cell decomposition in 3 (or more) dimensions is desirable since most motion planning problems have a C-space of more than 2 dimensions. The methods discussed previously work well for 2D, but only cylindrical decomposition generalizes well to higher dimensions. Vertical decomposition can be recursively applied to $k$-cells of higher dimensions, but it only succeeds if $C_{obs}$ is represented as a semi-algebraic model with linear primitives. 
 
 \subsubsection{Querying}
 
@@ -198,7 +200,7 @@ To solve a path planning query using the roadmap generated by a cell decompositi
 
 \subsection{Combinatorial Motion Planning Complexity}
 
-The crux of combinatorial methods is that the upper bound on the number of possible paths in a roadmap scales factiorally with the number of edges and vertices in a graph. 
+There are two major issues with combinatorial methods. The first is that the upper bound on the number of possible paths in a roadmap scales factiorally with the number of edges and vertices in a graph. 
 
 Consider the simpler problem of a robot moving in a directed acyclic grid with dimensions $m \times n$ and each edge is the same length. If the robot is at an inital location $(s_x, s_y)$ and the goal is given as $(g_x, g_y)$, then the total number of solutions is 
 
@@ -215,8 +217,7 @@ Given (\ref{eq:comb_complex}), the total number of paths to move from one corner
 These equations assume that the robot would never have a cyclic path. This assumption may hold for path planning in static environments, but it is one that cannot be made for the more general problem of path planning in dynamic environments. A robot may need to move back to a previous position due to the environment changing or the robot made need a path with a new direction to avoid an obstacle. Thus, the number of possible paths for a real-time motion planning system would be even more than the directed acyclic graph case. 
 
 
-Another significant issue with these methods is that the exact C-space must be computed to perform the decomposition methods. Constructing the C-space will scale exponentially with the degrees of freedom of a robot and the number of obstacles in the workspace.
-
+The second major issue with these methods is that the exact C-space must be computed to perform the decomposition methods. As noted in Section \ref{sec:c-space}, constructing the C-space will scale with the degrees of freedom of a robot (i.e. its C-space dimensionality) and the number of obstacle edges in the workspace.
 
 While it is good to understand the theoretical components of these algorithms, it would be far too time-consuming to run any combinatorial method on a real-time motion planning system. 
 
@@ -225,11 +226,16 @@ While it is good to understand the theoretical components of these algorithms, i
 
 \section{Artificial Potential Fields} \label{sec:potfields}
 
-In an artificial potential field approach \cite{khatib1986real}, a robot is treated like a particle in a gradient field. The goal state emits an attractive force that acts on the robot and the obstacles emit repulsive forces. The combination of these forces results in a vector field that guides the robot from its initial state to the goal state. At each location, a robot's motion is dictated by the magnitude and direction of the gradient vector at the location. 
+In an artificial potential field approach \cite{khatib1986real}, a robot is treated like a particle in a gradient field. The goal state emits an attractive force that acts on the robot and the obstacles emit repulsive forces. The combination of these forces results in a vector field that guides the robot from its initial state to the goal state. At each location, a robot's motion is dictated by the magnitude and direction of the gradient vector at the location. Let $U_{att}(q)$ denote the attractive force emitted from the goal at configuration $q$, and $U_{rep}(q)$ denote the repulsive force from the closest obstacle in an environment at configuration $q$. The overall force acting on the robot is:
 
+\begin{equation}
+U(q) = U_{att}(q) + U_{rep}(q)
+\end{equation}
+
+The motion of the robot is determined by $\nabla U$. The speed at $q$ is the magnitude of $\nabla U(q)$, and the direction of motion is the direction of $\nabla U(q)$. 
 %This approach integrates high-level path planning with lower-level robot control to achieve both obstacle avoidance and task-consistent motion simultaneously.
 
-Encountering local minima is the largest problem when using this approach. If a robot is led into an area dominated by repulsive forces, then that area may cause the robot to move in a loop. The most common method of escaping local minima is random walks. When it is detected that the robot has encountered a local minima, a random direction is chosen and the robot is moved in that direction for a variable amount of time. After moving in a random direction, it is hoped that the robot will have escaped the local minima region and can resume moving towards the goal.
+Encountering local minima is a problem when using this approach. If a robot is led into an area dominated by repulsive forces, then that area may cause the robot to move in a loop. The most common method of escaping local minima is random walks. When it is detected that the robot has encountered a local minima, a random direction is chosen and the robot is moved in that direction for a variable amount of time. After moving in a random direction, it is hoped that the robot will have escaped the local minima region and can resume moving towards the goal.
 
 Another issue with using potential fields to move a robot is that the exact C-space must be computed. As discussed before, this is usually infeasible when the C-space is high-dimensional.
 
@@ -242,7 +248,7 @@ Computing the exact configuration space in high dimensions becomes extremely exp
 
 Sampling based methods do not access the C-space directly. An associated collision detection algorithm will test a sampled configuration of the robot against obstacles in the environment. Based on the result of collision detection, the sampling algorithm knows if a sample lies in the free or obstacle portions of the C-space. Connections between samples are made through local planner. After sampling many points, the result is an approximation of the C-space, rather than a complete description. 
 
-Sampling has become the method of choice for most modern robotics applications. A sampling based method was first proposed in 1996 \cite{PRM} that builds a graph representation of the C-space approximation and then uses graph-search techniques to find a final path. A tree-based approach was introduced shortly after that could take kinodynamic constraints into account \cite{RRT}. These two approaches have been extended and iterated upon many times and remain the top approaches in the field.
+Sampling has become the method of choice for most modern robotics applications. A sampling based method was first proposed in 1996 \cite{PRM} that builds a graph representation of the C-space approximation and then uses graph-search techniques to find a final path. A tree-based approach was introduced shortly after that could take kinodynamic constraints into account \cite{RRT}. These two approaches have been extended and iterated upon many times and remain among the top approaches in the field.
 
 \subsection{Probabilistic Roadmaps}
 
@@ -250,7 +256,7 @@ The basic Probabilistic Roadmaps algorithm \cite{PRM} works in two phases: learn
 
 \subsubsection{Learning Phase}
 
-The goal of the \emph{learning} phase is to build the C-space approximation. An overview of the learning phase is summarized below in Algorithm 1.
+The objective of the \emph{learning} phase is to build the C-space approximation. An overview of the learning phase is summarized below in Algorithm 1.
 
 \begin{algorithm}
 \caption{PRM Learning Phase}
@@ -275,11 +281,11 @@ The goal of the \emph{learning} phase is to build the C-space approximation. An 
 \end{algorithmic}
 \end{algorithm}
 
-The goal is to build an undirected graph containing $N$ nodes. These nodes correspond the collision-free points in a robot's configuration space. When a point is sampled and determined to be collision-free, a neighborhood of points from the existing graph is found. For each of these neighborhood points, if a local planner can find a collision-free path from the sampled point to the neighborhood points, an edge is formed connecting the nodes. If a sampled node is found to be in collision, the node is thrown away and the algorithm samples again. 
+The goal is to build an undirected graph containing $N$ nodes. These nodes correspond the collision-free points in a robot's configuration space. When a point is sampled and determined to be collision-free, a neighborhood of points from the existing graph is found. For each of these neighborhood points, if a local planner can find a collision-free path from the sampled point to the neighborhood points, an edge is formed connecting the nodes. If a sampled node is found to be in collision, the node is thrown away.  
 
 A local planner is utilized in order to create edges within the graph. Designing a local planner can be difficult, however, because it needs to plan in a high-dimensional space. Cheap and fast planners are possible since there is no need to consider a global objective. Even if fast local planners are not complete, they are desired over more powerful methods because they allow for more connections to be considered during the learning phase. This is true because if a local planner is fast, then checking connections between many nodes is fast. Thus, the faster a local planner is, the more connections can be made in a small amount of time. It is desirable to sample as many nodes and make as many connections as possible since more nodes and connections will generally lead to a more accurate C-space approximation. For these reasons, local planners that connect nodes via straight lines are commonly used.
 
-Determining the neighborhood of a node is based on the value of a distance function between two nodes. The distance function is closely related to the choice of local planner because the distance should be proportional to the chance that the local planner can connect the two nodes with a collision-free path. For straight line local planners, the distance function can be the Euclidean distance between the nodes' positions in the robot's workspace. For more complicated local planners, however, more involved distance functions must be defined.  
+Determining the neighborhood of a node is based on the value of a distance function. The distance function is closely related to the choice of local planner because the distance should be proportional to the chance that the local planner can connect the two nodes with a collision-free path. For straight line local planners, the distance function can be the Euclidean distance between two nodes' positions in the robot's workspace. For more complicated local planners, however, more involved distance functions must be defined.  
 
 Narrow passages are a critical concern during the learning phase. A narrow passage is a region that is mostly enclosed by obstacles. These regions are of concern because it is difficult to sample inside of them and to find connections to nodes inside the regions. If a robot must pass through a narrow passage to reach its goal, then the learning phase may be prolonged to the point of being impractical. 
 
@@ -312,7 +318,7 @@ Dynamic environments are difficult to address with the PRM approach. Constructin
 
 \subsection{Rapidly-Exploring Random Trees}
 
-Rapidly-exploring Random Trees (RRT) is a popular sampling based approach for high dimensional spaces \cite{RRT}. The key difference between RRT and PRM is that RRT uses a tree structure to approximate a robot's C-space, rather than the undirected graph structure used in PRM. This approach leads to several attractive features: it is suitable for handling non-holonomic and kinodynamic constraints, it requires few parameters, and is more apt to handle real-time planning in dynamic environments. RRT was specifically designed for kinodynamic planning (discussed more in Section VI), i.e. it considers both configurations and differential constraints. For this reason, it is also referred to as a randomized kinodynamic planner \cite{lavalle2001randomized}.  
+Rapidly-exploring Random Trees (RRT) is a popular sampling based approach for high dimensional spaces \cite{RRT}. The key difference between RRT and PRM is that RRT uses a tree structure to approximate a robot's C-space, rather than the undirected graph structure used in PRM. This approach leads to several attractive features: it is suitable for handling non-holonomic and kinodynamic constraints (Section \ref{sec:kino}), it requires few parameters, and is more apt to handle real-time planning in dynamic environments. 
 
 %The kinodynamic state space contains both the set of the configurations and the set of possible velocities. A single state would represent the robot's velocity at a particular configuration. Let $Q$ denote the configuration space of a rigid or articulated object in space. Each state $q \in Q$ represents a single configuration of the object. For kinodynamic planning, a state $x \in X$ would be defined as $x=(q,\dot{q})$ and $X$ is the set of all such states. Other types of spaces are viable, however. The state space could include higher-order derivatives or only the configuration $q$. If RRT is considering differential constraints, then the output will be a trajectory as opposed to only a geometric path.
 
@@ -353,7 +359,7 @@ Both sampling-based approaches sample stochastically in order to build an approx
 
 For PRM, most of the immediate work following \cite{PRM} focused on the learning phase of PRM to improve its ability to capture narrow passageways in the C-space. This is because narrow passageways are the most significant challenge when using a sampling-based approach. Extensions of the PRM algorithm target one of two aspects: the node generation process or the process of finding a neighborhood of candidate connections. 
 
-Obstacle Based PRM (OBPRM) \cite{amato1998obprm} generates nodes based on obstacle surfaces. Thus, the obstacle information guides the node generation process. It can generate both contact configurations (for manipulation planning) and configurations in free space for general path-planning. Each sampled state is translated towards an obstacle until collision is made. Then, the robot is rotated randomly (while maintaining collision) and the resulting configuration is recorded as $c_{in}$. A random direction is selected to translate $c_{in}$ on until a free configuration, $c_{out}$, is found. The contact configuration between $c_{in}$ and $c_{out}$ can be found through binary search.
+Obstacle Based PRM (OBPRM) \cite{amato1998obprm} generates nodes based on obstacle locations. The obstacle information guides the node generation process. It can generate both contact configurations (for manipulation planning) and configurations in free space for general path-planning. Each sampled state is translated towards an obstacle until collision is made. Then, the robot is rotated randomly (while maintaining collision) and the resulting configuration is recorded as $c_{in}$. A random direction is selected to translate $c_{in}$ on until a free configuration, $c_{out}$, is found. The contact configuration between $c_{in}$ and $c_{out}$ can be found through binary search.
 Medial Axis PRM (MAPRM) \cite{wilmarth1999maprm} proposes a node generation strategy based on the medial axis of a space. Each new sampled state is retracted onto the medial axis of the robot's configuration-free space. The exact medial axis does not need to computed with this approach. Each sampled configuration is moved towards its nearest neighbor on the graph via bisection until there is no unique closest node on the graph. An approach to sampling based on Gaussian distribution was presented in \cite{boor1999gaussian}. This approach assigns probability values to C-space regions based on their distance from C-space obstacles. Higher values are given to areas closer to obstacles. Each iteration of building the graph does the following: a configuration is obtained via uniform sampling, then a distance value $d$ is chosen based on a Gaussian distribution uncertainty, and a second configuration is obtained at distance $d$ from the first sampled configuration, i.e. closer to an obstacle. All of these strategies help the planner deal with narrow passageways by generating nodes in regions close to obstacles, which are the hardest regions to plan in.
 
 A visilibity roadmap approach \cite{nissoux1999visibility} significantly reduces the number of nodes by only keeping nodes that either connect two connected components or are not visible by any "guard" nodes in the roadmap. A node is visible by another node if they can be connected with a straight-line that lies entirely in the free portion of a robot's C-space. Guard nodes are ones that are not visible by other guard nodes. 
@@ -367,8 +373,7 @@ Dynamic-Domain RRT \cite{yershova2005dynamic} is an approach to improve the node
 
 An Obstacle Based RRT approach \cite{tang2006obstacle} uses a group of growth operators to generate nodes that are close to obstacles. These operators use vectors between an obstacle's vertices to determine what direction to move a sample in. 
 
-The work done in \cite{zhang2008efficient} retracts nodes with a local optimization approach. Given a sample $q_r$ that is in collision with an obstacle, the algorithm makes an initial guess $q_n$, and then creates a new sample $q_c$ in the contact space that is found between $q_r$ and $q_n$. A set of nodes, $S$, can be found in the contact space that are within a distance threshold of $q_r$. The algorithm then performs an optimization loop in order to find the node in $S$ closest to the original sample $q_r$.
-
+The work done in \cite{zhang2008efficient} retracts nodes to $C_{free}$ with a local optimization approach. Given a sample $q_r$ that is in collision with an obstacle, the algorithm makes an initial guess $q_n$, and then creates a new sample $q_c$ in the contact space that is found between $q_r$ and $q_n$. A set of nodes, $S$, can be found in the contact space that are within a distance threshold of $q_r$. The algorithm then performs an optimization loop in order to find the node in $S$ closest to the original sample $q_r$.
 
 
 Using PRM and RRT to find an optimal path was explored in \cite{karaman2011sampling}. Three algorithms, PRM*, RRG, and RRT*, were proposed that extend the standard PRM and RRT algorithms. Analysis in this paper shows that the three algorithms presented are 1) asymptotically optimal, and 2) within a constant factor of the computational complexity of the standard sampling algorithms. 
@@ -379,9 +384,9 @@ The PRM* algorithm is only slightly different from the standard version. In the 
 r(n) = 2(1+1/d)^{1/d}*(\mu(X_{free})/ \zeta_d)^{1/d} * (log(n)/n)^{1/d}
 \end{equation}
 
-where $d$ is the dimension of the state space $X$, $\mu(X_{free})$ is the volume of the obstacle-free space, and $\zeta_d$ is the volume of the unit ball in the $d$-dimensional Euclidean space. The radius decreases as $n$ increases and the rate of decay is proportional to $log(n)$.
+where $d$ is the dimension of the state space $X$, $\mu(X_{free})$ is the volume of the obstacle-free space, and $\zeta_d$ is the volume of the unit ball in the $d$-dimensional Euclidean space. The radius decreases as $n$ increases and the rate of decay is proportional to $log(n)$. Similar to PRM, the PRM* algorithm is meant to handle multiple-query problems. 
 
-Similar to PRM, the PRM* algorithm is meant to handle multiple-query problems. The \emph{Rapidly exploring Random Graph} (RRG) algorithm is more suited for single-query problems. It is an incremental algorithm that builds a connected roadmap to use for planning. It is an extension of the RRT algorithm with one key difference: when a new vertex is added to the vertex set, all vertices that already exist in the set within a certain radius are connected to the new vertex. This means that the resulting data structure is a graph rather than a tree.
+The \emph{Rapidly exploring Random Graph} (RRG) algorithm is more suited for single-query problems. It is an incremental algorithm that builds a connected roadmap to use for planning. It is an extension of the RRT algorithm with one key difference: when a new vertex is added to the vertex set, all vertices that already exist in the set within a certain radius are connected to the new vertex. This means that the resulting data structure is a graph rather than a tree.
 
 RRT* modifies RRG by maintaining a tree structure rather than a graph. A subset of edges is considered redundant and removed so that cycles are not formed. These edges are ones that are not part of the shortest path from the root of the tree to a vertex.
 
@@ -397,15 +402,15 @@ Real-time Motion Planning is concerned with enabling a robot to react to unfores
 
 \subsection{D* Re-planning} \label{sec:dstar}
 
-D* \cite{stentz1994optimal} is an iterative graph-search alogrithm that incorporates dynamic edge costs into the planning in order to update a robot's path at real-time. Similar to A* search, it is an optimal and complete algorithm. As the robot moves on the optimal path towards the goal, sensing may find that something obstructs the path so much so that the robot cannot continue on the path. When this happens, D* updates the associated nodes and propagates necessary changes to the node's neighbors.
+D* \cite{stentz1994optimal} is an iterative graph-search alogrithm that incorporates dynamic edge costs into the planning in order to update a robot's path at real-time. Similar to A* search, it is an optimal and complete algorithm. As the robot moves on the optimal path towards the goal, sensing may find that something obstructs the path so much that the robot cannot continue on the path. When this happens, D* updates the associated nodes and propagates necessary changes to the node's neighbors.
 
-The algorithm plans from the goal node to the start node. It maintains a sorted list like other graph-search algorithms that contains nodes to expand called the OPEN list. Initially, no nodes in the graph have any costs. The goal node is pushed onto the OPEN list with a cost of 0. As nodes are expanded, the cost of its neighbors are computed before they are entered into the OPEN list. Once the start node is expanded, the shortest path is computed and given to the robot to follow.
+The algorithm plans from the goal node to the start node. Similar to other graph-search algorithms, it maintains a sorted list that contains nodes to expand called the OPEN list. Initially, no nodes in the graph have any costs. The goal node is pushed onto the OPEN list with a cost of 0. As nodes are expanded, the cost of its neighbors are computed before they are entered into the OPEN list. Once the start node is expanded, the shortest path is computed and given to the robot to follow.
 
-A robot may not be able to follow the initial path found by D* for numerous reasons, such as a door being closed, an obstacle obstructing the path, etc. In this case, D* will update the point in the path that the robot cannot reach, also update the point's neighbors, and re-compute a path to the goal. Generally, the node that the robot cannot reach is set to be obstacle space so it's path cost is dramatically increased. Then, the neighboring nodes are updated by changing the transition costs of these nodes, and they are inserted into the OPEN list. If one of the neighbors is popped off the OPEN list, the actual cost of the node is computed, and then the node is re-inserted into the OPEN list with the cost that includes the updates based on the environment changes. After this propagation of cost changes has been completed, a new path from the robot's current node to the goal node is computed and passed to the robot to follow.
+A robot may not be able to follow the initial path found by D* for numerous reasons, such as a door being closed, an obstacle obstructing the path, etc. In this case, D* will update the point in the path that the robot cannot reach, then update the point's neighbors, and re-compute a path to the goal. Generally, the node that the robot cannot reach is set to be obstacle space so it's path cost is dramatically increased. Then, the neighboring nodes are updated by changing the transition costs of these nodes, and they are inserted into the OPEN list. If one of the neighbors is popped off the OPEN list, the actual cost of the node is computed, and then the node is re-inserted into the OPEN list with the cost that includes the updates based on the environment changes. After this propagation of cost changes has been completed, a new path from the robot's current node to the goal node is computed and passed to the robot to follow.
 
 The process of modifying costs at real-time and re-computing a path is faster than applying A* (or other graph-search algorithm) from scratch. This re-planning approach was initially proposed for moving a robot in a partially known environment. It was extended to work in the prescense of moving obstacles in \cite{stentz1995focussed}. The approach inspired a similar re-planning algorithm called D*-lite \cite{koenig2005fast} that generated behavior as if it were D*, but the algorithm itself is simpler. 
 
-Some issues with this approach are that 1) it's unclear what the robot should do while re-planning, 2) D* has only been shown to work with mobile bases, and 3) the discretization of the environment can siginficantly affect the performance of this approach. For the first issue, if the robot is meant to stop and not move while re-planning, then it is very vulnerable to collision while stopped. The second issue implies that this approaco may not work for manipulators because it can take too long to re-plan. Since a manipulator's C-space is often high-dimensional, this approach may not be able to re-plan quickly enough to avoid obstacles at real-time. The third issue warrants a discussion on the trade-off between accuracy and efficiency since a more fine grid will take a longer time to plan on. 
+Some issues with this approach are that 1) it's unclear what the robot should do while re-planning, 2) D* has only been shown to work with mobile bases, and 3) the discretization of the environment can siginficantly affect the performance of this approach. For the first issue, if the robot is meant to stop and not move while re-planning, then it is very vulnerable to collision while stopped. The second issue implies that this approach may not work for manipulators because it can take too long to re-plan in a high dimensional space to avoid obstacles at real-time. The third issue warrants a discussion on the trade-off between accuracy and efficiency since a more fine grid will take a longer time to plan on. 
 
 
 
@@ -420,7 +425,7 @@ An elastic strip is a volume formed by the union of a set of homotopic paths. Th
 
 The Elastic Strips framework employs local potential fields to modify trajectories in response to changes in the environment. The potential fields act on the future points along the robot's path.
 
-A path is represented as a discrete set of configurations. Let $P_c$ be the candidate path for a robot. To avoid obstacles, a new candidate path, $P_c'$, must be formed by modifying $P_c$ so that $P_c'$ lies within the elastic tunnel. To modify a path, two work space forces are created from two potential fields and applied to the path's configurations. The two forces are $V_{external}$ and $V_{internal}$. The external force is based on the robot's proximity to obstacles. For a point $p$ on the robot, $V_{ext}$ is defined as
+A path is represented as a discrete set of configurations. Let $P_c$ be the candidate path for a robot. To avoid obstacles, a new candidate path, $P_c'$, must be formed by modifying $P_c$ such that $P_c'$ lies within the elastic tunnel. To modify a path, two work space forces are created from two potential fields and applied to the path's configurations. The two forces are $V_{external}$ and $V_{internal}$. The external force is based on the robot's proximity to obstacles. For a point $p$ on the robot, $V_{ext}$ is defined as
 
 \begin{equation}
 V_{ext} = \begin{cases} 
@@ -463,10 +468,10 @@ Using potential fields as controllers as an approach to generate motion while sa
 \subsection{Real-time Adaptive Motion Planning (RAMP)}
 	
 		
-One of the key difficulties in robot motion planning is planning in high-dimensional state spaces, such as mobile manipulator models, at real-time. Sampling-based methods are able to find a path in large state spaces, but they can be far from optimal and re-building roadmaps can be too expensive for real-time planning. The Real-time Adaptive Motion Planning (RAMP) \cite{RAMP} framework utilizes evolutionary computation for real-time planning and execution of high-DOF robots in dynamic environments.
+One of the key difficulties in robot motion planning is planning in high-dimensional state spaces, such as mobile manipulator models, at real-time. Sampling-based methods are able to find a path in large state spaces, but they can be far from optimal and re-building roadmaps can be too expensive to avoid obstacles at real-time. The Real-time Adaptive Motion Planning (RAMP) \cite{RAMP} framework utilizes evolutionary computation for real-time planning and execution of high-DOF robots in dynamic environments.
 
 
-RAMP is a framework that utilizes evolutionary computation for real-time planning and execution in dynamic environments. Evolutionary computation is a field designed to leverage sophisticated data structures with genetic algorithms to rapidly search through a solution space \cite{michalewicz2013genetic}. They are useful for motion planning because an evolutionary computation approach to planning allows us to drastically change a robot's trajectory very quickly and incorporate optimization into our state spaces searches. Using evolutionary computation for path planning was first proposed in \cite{EPN_Adaptive}. 
+RAMP is a framework that utilizes evolutionary computation for real-time planning and execution in dynamic environments. Evolutionary computation is a field designed to leverage sophisticated data structures with genetic algorithms to rapidly search through a solution space \cite{michalewicz2013genetic}. They are useful for motion planning because an evolutionary computation approach to planning allows us to drastically change a robot's trajectory with simple, fast operators and incorporate optimization into our state spaces searches. Using evolutionary computation for path planning was first proposed in \cite{EPN_Adaptive}. 
 
 \subsubsection{Overview}\label{subseq:RAMP Overview}
 
@@ -479,7 +484,7 @@ The framework interweaves three separate procedures called planning cycles, cont
 \subsubsection{Modification}
 
 
-The basic modification operators are described in \cite{EPN_Adaptive}. They are \emph{Insert}, \emph{Delete}, \emph{Swap}, \emph{Change}, and \emph{Crossover}. These modification operations are computationally inexpensive so it is possible to perform 100+ within a second. The operators can result in drastic changes to a path. This means that a new feasible path may be found in a very small amount of time, which facilitates real-time path planning that can react to changes in an environment. Modification operators can be added, removed, or replaced based on the application of the robot. For instance, a \emph{Stop} operator was introduced in \cite{RAMP} that stops the base of a mobile manipulator for a random amount of time. This operator promoted decoupling of the base and manipulator, which was desirable to exploit redundancy. 
+The basic modification operators are described in \cite{EPN_Adaptive}. They are \emph{Insert}, \emph{Delete}, \emph{Swap}, \emph{Change}, and \emph{Crossover}. These modification operations are computationally inexpensive so it is possible to perform many of them within a small amount of time. The operators can result in drastic changes to a path. This means that a new feasible path may be found very quickly, which facilitates real-time path planning that can react to changes in an environment. Modification operators can be added, removed, or replaced based on the application of the robot. For instance, a \emph{Stop} operator was introduced in \cite{RAMP} that stops the base of a mobile manipulator for a random amount of time. This operator promoted decoupling of the base and manipulator, which was desirable to exploit redundancy. 
 
 
 \subsubsection{Evaluation}
@@ -528,7 +533,7 @@ RAMP has also been applied to continuum manipulator robot models \cite{xiao2010r
 
 \section{Collision Detection} \label{sec:coll}
 	
-	Collision detection is the problem of determining whether one or more objects in a virtual environment intersect. Collision detection is the most computationally expensive task in robot motion planning because it has to be performed at each point in a C-space representation to determine whether or not a point lies in $C_{free}$ or $C_{obs}$. This is made even more time consuming by the complexity of the obstacles and the number of obstacles in an environment.
+	Collision detection is the problem of determining whether one or more objects in a virtual environment intersect. Collision detection is the most computationally expensive task in sampling-based robot motion planning because it has to be performed with respect to each sample to determine whether or not a point lies in $C_{free}$ or $C_{obs}$. This is made even more time consuming by the complexity of the obstacles and the number of obstacles in an environment.
 	
 \subsection{Convex Shapes}
 	
@@ -536,7 +541,7 @@ RAMP has also been applied to continuum manipulator robot models \cite{xiao2010r
 	
 	The Gilbert-Johnston-Keerthi (GJK) algorithm \cite{gilbert1988fast} is an approach for collision detection between two convex polygons or polyhedra. Let $A$ and $B$ be two nonequal sets of vertices for convex polygons. The GJK algorithm finds a Minkowski sum of the two sets, $C = A - B = \{p_1 - p_2 | p_1 \in A \text{ and } p_2 \in B\}$. If the origin is contained in $C$, then the two objects $A$ and $B$ are in collision.
 	
-	It is often useful to know the distance between two objects, e.g. to maintain a certain distance from obstacles. The GJK algorithm provides a simple method to compute this. Let $C$ be the Minkowski Sum between two convex polygons. Let $q$ denote the closest point in $C$ to the origin. The length of the vector $\vec{\textbf{q}}$ from the origin to $q$ is equal to the distance between the closest pair of points on $A$ and $B$. 
+	It is often useful to know the distance between two objects to maintain a certain distance from obstacles. The GJK algorithm provides a simple method to compute this. Let $C$ be the Minkowski Sum between two convex polygons. Let $q$ denote the closest point in $C$ to the origin. The length of the vector $\vec{\textbf{q}}$ from the origin to $q$ is equal to the distance between the closest pair of points on $A$ and $B$. 
 	
 %If the two objects intersect, then the length of $\vec{\textbf{q}}$ is equal to the penetration distance of one object into another.
 	
@@ -568,7 +573,7 @@ RAMP has also been applied to continuum manipulator robot models \cite{xiao2010r
 
 \section{Conclusions} \label{sec:conclusion}
     
-    One of the biggest open problems in motion planning is the integration of sensing uncertainty into motion planning algorithms. Currently, a great deal of motion planning research assumes that good sensing is available to a robot and that changes in the environment can be found quickly and accurately. However, this is often not the case. All sensors contain a significant deal of uncertainty, and can take significant time to process. These issues can be detrimental to a robot if not accounted for. 
+    One of the biggest open problems in motion planning is the integration of sensing uncertainty into motion planning algorithms. Currently, a great deal of motion planning research assumes that good sensing is available to a robot and that changes in the environment can be found quickly and accurately. However, this is often not the case. All sensors contain a significant deal of uncertainty, and can take significant time to process. These issues can be detrimental to a robot if not accounted for while planning motion. 
     
     
     %There have been some approaches to handle specific types of constrained motion, but an approach to handle any general constraint is still an open problem. Further, handling these constraints in a dynamic environment is even more difficult. 

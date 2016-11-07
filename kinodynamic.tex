@@ -62,7 +62,7 @@ The randomized kinodynamic planner based on RRT assumes that an environment is s
 This approach has been shown to work for several systems. For each system, the dynamic model must be defined as well as a distance metric in order to approximate a nearest neighbor for each node. The most complicated system described in experimental results is a three-dimensional spacecraft with a 12-dimensional state space. A bidirectional search method can also be applied to this work as in \cite{kuffner2000rrt}.
 
 % Introduce NOT PRM approach, why needed?, the basics of the approach
-The RRT approach did not consider dynamic obstacles, however. Dynamic obstacles in kinodynamic planning were considered using a PRM approach \cite{hsu2002randomized}. This work plans in the state$\times$time space of a robot by sampling to build an approximation of the search space. A vision module runs simultaneously with the planner to estimate obstacle motion.
+The RRT approach did not consider dynamic obstacles, however. Dynamic obstacles in kinodynamic planning were considered using a different randomized approach \cite{hsu2002randomized}. This work plans in the state$\times$time space of a robot by sampling to build an approximation of the search space. A vision module runs simultaneously with the planner to estimate obstacle motion.
 
 % Define search space
 Let $S$ denote the state space of a robot, e.g. in the case of a car-like robot a state $s \in S$ would contain $(x,y,\theta,\dot{x},\dot{y},\dot{\theta})$. 
